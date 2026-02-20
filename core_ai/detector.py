@@ -104,22 +104,20 @@ while cap.isOpened():
 
     # --- DRAWING (UI) ---
     # --- DRAWING (UI) ---
-    # We still draw the boxes so we can save screenshots if needed later, 
-    # but we DO NOT use cv2.imshow anymore!
     for i, pts in enumerate(pos_list):
+        # Red if Occupied, Green if Vacant
         color = (0, 0, 255) if slot_states[i]["status"] == "Occupied" else (0, 255, 0)
         cv2.polylines(frame_resized, [np.array(pts, np.int32)], True, color, 2)
+        
+        # Draw Slot ID
         cv2.putText(frame_resized, f"{i+1}", (int(pts[0][0]), int(pts[0][1])-5), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
-    # REMOVE THESE LINES:
-    # cv2.imshow(f"Monitoring - {W_ID}", frame_resized)
-    # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     break
-
-    # ADD THIS INSTEAD: 
-    # This prevents the AI from processing the video too fast (since it's not waiting for a screen anymore)
-    time.sleep(0.03) 
+    # THESE ARE THE LINES THAT MAKE THE WINDOW POP UP!
+    cv2.imshow(f"Monitoring - {W_ID}", frame_resized)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 cap.release()
-cv2.destroyAllWindows()
+cv2.destroyAllWindows() 
