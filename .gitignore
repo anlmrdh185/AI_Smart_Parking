@@ -1,0 +1,18 @@
+# Ignore datasets and images
+dataset/train/
+dataset/val/
+dataset/test/
+dataset/*.jpeg
+dataset/*.jpg
+dataset/*.png
+
+# Ignore YOLOv5 cloned repo to save space
+yolov5/
+
+# Ignore local databases and cache
+*.db
+__pycache__/git add .
+
+# Ignore Python Virtual Environment (CRUCIAL)
+venv/
+env/
