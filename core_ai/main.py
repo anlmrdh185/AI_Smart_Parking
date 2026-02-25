@@ -103,7 +103,7 @@ if st.session_state.show_payment:
                 duration = datetime.now() - entry_time
                 seconds_parked = duration.seconds
                 
-                # --- FETCH LIVE FEES FROM ADMIN CLOUD DB ---
+                # --- FETCH LIVE FEES FROM CLOUD DB (Using parking_fee table) ---
                 try:
                     settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
                     if settings_res.data:
