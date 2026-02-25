@@ -8,36 +8,25 @@ st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="�
 
 st.markdown("""
     <style>
-    /* Admin Theme */
     .stApp { background-color: #f8fafc; }
-    
-    /* Login Box */
     .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #8b5cf6; }
-    
-    /* Top Metrics */
     div[data-testid="metric-container"] { background-color: #ffffff; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .metric-val { font-size: 28px; font-weight: bold; color: #1e293b; margin-top: 5px; }
     .metric-label { font-size: 13px; color: #64748b; font-weight: 500;}
     .sparkline { font-size: 20px; font-weight: bold; }
-    
-    /* Purple Headers & Buttons */
     .admin-header { background-color: #8b5cf6; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2); }
     .stButton>button { background-color: #8b5cf6; color: white; border: none; border-radius: 8px; padding: 10px 24px; font-weight: bold; width: 100%; transition: all 0.3s;}
     .stButton>button:hover { background-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
-    
-    /* CCTV Stream View */
     .cctv-container { background-color: #0f172a; border-radius: 12px; padding: 20px; height: 400px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: 1px solid #334155;}
     .cctv-live-badge { position: absolute; top: 15px; right: 20px; color: #ef4444; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px;}
     .cctv-live-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
     .cctv-timestamp { color: #94a3b8; font-size: 12px; font-family: monospace; }
     .cctv-center-text { text-align: center; color: #64748b; margin-top: 100px; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-    
-    /* Settings Cards */
     .settings-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .settings-title { display: flex; align-items: center; gap: 10px; color: #1e293b; font-weight: bold; font-size: 18px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;}
     
-    /* EXACT GRID CSS FROM MAIN.PY */
+    /* GRID CSS */
     .parking-map-container { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
     .gate-header { width: 95%; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: flex-end; }
     .gate-group { display: flex; align-items: center; gap: 5px; }
@@ -67,9 +56,13 @@ def get_cloud_data(table_name):
     except Exception as e:
         return pd.DataFrame()
 
-# --- 3. AUTHENTICATION LOGIC ---
+# --- 3. AUTHENTICATION & MEMORY LOGIC ---
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
+
+# Memory to store uploaded videos for each wing separately!
+if 'wing_videos' not in st.session_state:
+    st.session_state.wing_videos = {}
 
 if not st.session_state.admin_logged_in:
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
@@ -118,7 +111,6 @@ if menu_selection == "🔍 Parking Monitoring":
     view_mode = st.radio("View Mode", ["Grid View", "CCTV Stream View"], horizontal=True, label_visibility="collapsed")
     st.markdown("---")
     
-    # EXACT MAPPING FROM MAIN.PY
     WING_LAYOUTS = {
         'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
         'W3A': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 11)], 'bottom': [f'{i:02}' for i in range(11, 22)]},
@@ -187,19 +179,32 @@ if menu_selection == "🔍 Parking Monitoring":
         with c1:
             st.markdown("##### Camera Feeds")
             wings = sorted(df_slots['wing_id'].unique()) if not df_slots.empty else ["W1", "W3A", "W5", "W7", "W8"]
+            
+            # 1. Select the Camera
             selected_cam = st.radio("Select Camera Zone", wings)
             st.markdown("---")
-            # --- NEW: ACTUAL VIDEO UPLOAD LOGIC ---
-            uploaded_video = st.file_uploader("Upload Demo Video Feed", type=['mp4', 'mov', 'avi'])
+            
+            # 2. Upload specifically to the selected Camera!
+            st.markdown(f"**Upload Feed for {selected_cam}:**")
+            uploaded_video = st.file_uploader("", type=['mp4', 'mov', 'avi'], key=f"uploader_{selected_cam}", label_visibility="collapsed")
+            
+            # If a video is uploaded, read its data and save it into our memory dictionary
+            if uploaded_video is not None:
+                st.session_state.wing_videos[selected_cam] = uploaded_video.read()
+                st.success(f"Video saved for {selected_cam}!")
+                
+            if st.button("🗑️ Clear all stored videos"):
+                st.session_state.wing_videos = {}
+                st.rerun()
             
         with c2:
             st.markdown(f"##### Viewer: Zone {selected_cam}")
             
-            # If the user uploads a video, show the video player!
-            if uploaded_video is not None:
-                st.video(uploaded_video)
+            # 3. Check memory! Does the selected camera have a video stored?
+            if selected_cam in st.session_state.wing_videos:
+                # Play the specific video for this wing!
+                st.video(st.session_state.wing_videos[selected_cam])
             else:
-                # If no video is uploaded, show the waiting screen
                 now_str = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
                 cctv_html = f"""
                 <div class='cctv-container'>
