@@ -17,12 +17,22 @@ st.markdown("""
     .admin-header { background-color: #8b5cf6; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2); }
     .stButton>button { background-color: #8b5cf6; color: white; border: none; border-radius: 8px; padding: 10px 24px; font-weight: bold; width: 100%; transition: all 0.3s;}
     .stButton>button:hover { background-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
-    .cctv-container { background-color: #0f172a; border-radius: 12px; padding: 20px; height: 400px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: 1px solid #334155;}
+    
+    /* CCTV Stream View - HEIGHT REDUCED TO 350px */
+    .cctv-container { background-color: #0f172a; border-radius: 12px; padding: 20px; height: 350px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: 1px solid #334155;}
     .cctv-live-badge { position: absolute; top: 15px; right: 20px; color: #ef4444; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px;}
     .cctv-live-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
     .cctv-timestamp { color: #94a3b8; font-size: 12px; font-family: monospace; }
-    .cctv-center-text { text-align: center; color: #64748b; margin-top: 100px; }
+    .cctv-center-text { text-align: center; color: #64748b; margin-top: 80px; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    
+    /* FORCE VIDEO TO BE COMPACT AND FIT IN */
+    video {
+        max-height: 350px !important;
+        border-radius: 12px !important;
+        background-color: #0f172a;
+    }
+
     .settings-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .settings-title { display: flex; align-items: center; gap: 10px; color: #1e293b; font-weight: bold; font-size: 18px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;}
     
@@ -60,7 +70,6 @@ def get_cloud_data(table_name):
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
-# Memory to store uploaded videos for each wing separately!
 if 'wing_videos' not in st.session_state:
     st.session_state.wing_videos = {}
 
@@ -144,7 +153,6 @@ if menu_selection == "🔍 Parking Monitoring":
             </div>
             """
             
-            # TOP ROW
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['top']:
                 if item == 'YELLOW':
@@ -159,7 +167,6 @@ if menu_selection == "🔍 Parking Monitoring":
 
             html += "<div class='road-boundary'></div>"
             
-            # BOTTOM ROW
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['bottom']:
                 if item == 'YELLOW':
@@ -180,15 +187,12 @@ if menu_selection == "🔍 Parking Monitoring":
             st.markdown("##### Camera Feeds")
             wings = sorted(df_slots['wing_id'].unique()) if not df_slots.empty else ["W1", "W3A", "W5", "W7", "W8"]
             
-            # 1. Select the Camera
             selected_cam = st.radio("Select Camera Zone", wings)
             st.markdown("---")
             
-            # 2. Upload specifically to the selected Camera!
             st.markdown(f"**Upload Feed for {selected_cam}:**")
             uploaded_video = st.file_uploader("", type=['mp4', 'mov', 'avi'], key=f"uploader_{selected_cam}", label_visibility="collapsed")
             
-            # If a video is uploaded, read its data and save it into our memory dictionary
             if uploaded_video is not None:
                 st.session_state.wing_videos[selected_cam] = uploaded_video.read()
                 st.success(f"Video saved for {selected_cam}!")
@@ -200,9 +204,8 @@ if menu_selection == "🔍 Parking Monitoring":
         with c2:
             st.markdown(f"##### Viewer: Zone {selected_cam}")
             
-            # 3. Check memory! Does the selected camera have a video stored?
             if selected_cam in st.session_state.wing_videos:
-                # Play the specific video for this wing!
+                # The custom CSS injected at the top forces this to be exactly 350px tall!
                 st.video(st.session_state.wing_videos[selected_cam])
             else:
                 now_str = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
