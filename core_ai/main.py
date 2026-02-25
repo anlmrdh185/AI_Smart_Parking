@@ -101,10 +101,24 @@ if st.session_state.show_payment:
                 row = occupied_df[occupied_df['slot_id'] == selected_slot].iloc[0]
                 entry_time = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
                 duration = datetime.now() - entry_time
-                hours = max(1, duration.seconds // 3600)
-                fee = 2.00 + (max(0, hours - 1) * 1.00)
+                seconds_parked = duration.seconds
                 
-                st.write(f"**Parked Duration:** {hours} Hour(s)")
+                # --- FETCH LIVE FEES FROM ADMIN CLOUD DB ---
+                try:
+                    settings_res = supabase.table("settings").select("*").eq("id", 1).execute()
+                    if settings_res.data:
+                        base_fee = float(settings_res.data[0]['base_fee'])
+                        rate_per_second = float(settings_res.data[0]['rate_per_second'])
+                    else:
+                        base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                except:
+                    base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                    
+                fee = base_fee + (seconds_parked * rate_per_second)
+                
+                st.markdown(f"<span style='color:red; font-size: 12px; font-weight:bold;'>⚠️ FYP DEMO MODE ACTIVE</span>", unsafe_allow_html=True)
+                st.write(f"**Parked Duration:** {seconds_parked} Seconds")
+                st.write(f"**Current Rate:** RM {base_fee:.2f} + RM {rate_per_second:.2f}/sec")
                 st.write(f"**Amount Due:** RM {fee:.2f}")
                 if st.button("Confirm Payment", type="primary"):
                     st.success("Payment successful! Please exit within 15 minutes.")
