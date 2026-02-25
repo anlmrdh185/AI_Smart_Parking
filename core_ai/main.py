@@ -145,21 +145,25 @@ if st.session_state.show_payment:
                 duration = datetime.now() - entry_time_dt
                 seconds_parked = duration.seconds
                 
+                # --- NEW MATH: Calculate in blocks of 10 seconds ---
+                blocks_of_10s = seconds_parked // 10
+                
                 # --- FETCH LIVE FEES FROM CLOUD DB ---
                 try:
                     settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
                     if settings_res.data:
                         base_fee = float(settings_res.data[0]['base_fee'])
-                        rate_per_second = float(settings_res.data[0]['rate_per_second'])
+                        # We will treat the database value as the rate per 10 seconds now
+                        rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
                     else:
-                        base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                        base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
                 except:
-                    base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                    base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
                     
-                fee = base_fee + (seconds_parked * rate_per_second)
+                # Multiply the rate by the number of 10-second blocks
+                fee = base_fee + (blocks_of_10s * rate_per_10_sec)
                 
-              # --- CREATE A STABLE TICKET ID ---
-                # This mathematically turns "W1-05" into a stable 5-digit number so it stops flickering!
+                # --- CREATE A STABLE TICKET ID ---
                 stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
                 # --- PAYMENT RECEIPT UI ---
@@ -186,7 +190,7 @@ if st.session_state.show_payment:
                     </div>
                     <div class='payment-row'>
                         <span>Applied Rate</span>
-                        <span class='payment-val'>Base RM{base_fee:.2f} + RM{rate_per_second:.2f}/s</span>
+                        <span class='payment-val'>Base RM{base_fee:.2f} + RM{rate_per_10_sec:.2f}/10s</span>
                     </div>
                     <div class='payment-total-row'>
                         <span class='payment-total-label'>Total Due</span>
