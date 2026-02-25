@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 from datetime import datetime, date, time as dt_time
 from supabase import create_client
 
@@ -50,12 +51,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SUPABASE CONNECTION ---
-try:
+# --- 2. SUPABASE CONNECTION (FIXED CACHING!) ---
+@st.cache_resource
+def init_connection():
     SUPABASE_URL = st.secrets["SUPABASE_URL"]
     SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-except:
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+
+try:
+    supabase = init_connection()
+except Exception as e:
     st.error("Missing Streamlit Secrets. Please configure Supabase URL and Key.")
     st.stop()
 
@@ -180,6 +185,10 @@ if menu_selection == "🔍 Parking Monitoring":
             html += "</div></div></div></div>" 
             st.markdown(html, unsafe_allow_html=True)
             
+        # --- FIXED AUTO REFRESH LOOP ---
+        time.sleep(3)
+        st.rerun()
+            
     # --- CCTV STREAM VIEW ---
     elif view_mode == "CCTV Stream View":
         c1, c2 = st.columns([3, 7])
@@ -205,7 +214,6 @@ if menu_selection == "🔍 Parking Monitoring":
             st.markdown(f"##### Viewer: Zone {selected_cam}")
             
             if selected_cam in st.session_state.wing_videos:
-                # The custom CSS injected at the top forces this to be exactly 350px tall!
                 st.video(st.session_state.wing_videos[selected_cam])
             else:
                 now_str = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
@@ -315,7 +323,6 @@ elif menu_selection == "📊 Generate Reports":
                     st.dataframe(display_df, use_container_width=True)
                     
     st.markdown("</div>", unsafe_allow_html=True)
-            
     # --- NEW: Auto-refresh ONLY when looking at the Grid! ---
     time.sleep(3)
     st.rerun()
