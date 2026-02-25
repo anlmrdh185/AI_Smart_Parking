@@ -95,7 +95,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
     
     # FETCH CURRENT SETTINGS FROM CLOUD
     try:
-        settings_res = supabase.table("settings").select("*").eq("id", 1).execute()
+        settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
         current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
     except:
         current_settings = {"base_fee": 2.0, "rate_per_second": 0.1}
@@ -114,10 +114,10 @@ elif menu_selection == "⚙️ Settings & Configuration":
         if st.button("💾 Save Demo Fee Structure"):
             try:
                 # PUSH NEW SETTINGS TO CLOUD
-                supabase.table("settings").upsert({"id": 1, "base_fee": base_fee, "rate_per_second": sec_fee}).execute()
+                supabase.table("parking_fee").upsert({"id": 1, "base_fee": base_fee, "rate_per_second": sec_fee}).execute()
                 st.success("✅ Fees successfully synced to Cloud Database! Users will now be charged this rate.")
             except Exception as e:
-                st.error("Failed to save. Did you create the 'settings' table in Supabase?")
+                st.error("Failed to save. Did you create the 'parking_fee' table in Supabase?")
         st.markdown("</div>", unsafe_allow_html=True)
         
     with col2:
