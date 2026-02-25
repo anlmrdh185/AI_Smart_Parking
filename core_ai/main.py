@@ -205,7 +205,7 @@ if st.session_state.show_payment:
                             st.success("✅ Payment Successful! Thank you for parking with us.")
                             st.info("🔄 The parking slot status will reset in 5 seconds...")
                             
-                            time.sleep(5)
+                            time.sleep(120)
                             
                             st.session_state.show_payment = False
                             st.rerun()
