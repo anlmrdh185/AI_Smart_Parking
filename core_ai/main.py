@@ -203,8 +203,9 @@ if st.session_state.show_payment:
                             supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                             
                             st.success("✅ Payment Successful! Thank you for parking with us.")
-                            st.info("🔄 The parking slot status will reset in 5 seconds...")
+                            st.info("🔄 You have 2 minutes to exit. The parking slot status will reset shortly...")
                             
+                            # THE 2-MINUTE TIMER (120 seconds)
                             time.sleep(120)
                             
                             st.session_state.show_payment = False
