@@ -105,7 +105,7 @@ if st.session_state.show_payment:
                 
                 # --- FETCH LIVE FEES FROM ADMIN CLOUD DB ---
                 try:
-                    settings_res = supabase.table("settings").select("*").eq("id", 1).execute()
+                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
                     if settings_res.data:
                         base_fee = float(settings_res.data[0]['base_fee'])
                         rate_per_second = float(settings_res.data[0]['rate_per_second'])
