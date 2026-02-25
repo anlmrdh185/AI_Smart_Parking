@@ -158,13 +158,17 @@ if st.session_state.show_payment:
                     
                 fee = base_fee + (seconds_parked * rate_per_second)
                 
+              # --- CREATE A STABLE TICKET ID ---
+                # This mathematically turns "W1-05" into a stable 5-digit number so it stops flickering!
+                stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
+
                 # --- PAYMENT RECEIPT UI ---
                 payment_html = f"""
                 <div class='payment-card'>
                     <div class='payment-header'>🅿️ Parking Fee Summary</div>
                     <div class='payment-row'>
                         <span>Ticket ID</span>
-                        <span class='payment-val'>#{random.randint(10000, 99999)}</span>
+                        <span class='payment-val'>#{stable_ticket_id}</span>
                     </div>
                      <div class='payment-divider'></div>
                     <div class='payment-row'>
