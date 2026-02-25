@@ -124,98 +124,98 @@ st.markdown("---")
 
 if st.session_state.show_payment:
     st.info("💳 **Secure Payment Portal**")
-    if not df_slots.empty:
-        # Filter for occupied slots only
-        occupied_df = df_slots[df_slots['status'] == 'Occupied']
-        
-        if occupied_df.empty:
-            st.warning("✅ No occupied slots require payment right now.")
-        else:
-            # Selection Dropdown
-            selected_slot_str = st.selectbox("Select Your Parking Slot ID:", occupied_df['slot_id'])
+    
+    # 1. User types in their Slot ID
+    entered_slot = st.text_input("Enter Your Parking Slot ID (e.g., W1-05):", placeholder="W1-05").strip().upper()
+    
+    if entered_slot:
+        # 2. Check if the slot exists in the database
+        if not df_slots.empty and entered_slot in df_slots['slot_id'].values:
+            row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
             
-            # Get the specific row data for the selected slot
-            row = occupied_df[occupied_df['slot_id'] == selected_slot_str].iloc[0]
-            
-            # Calculate Duration
-            try:
-                entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
-            except:
-                entry_time_dt = datetime.now() # Failsafe if start_time is null
+            # 3. Check if the car is actually parked there
+            if row['status'] == 'Occupied':
                 
-            duration = datetime.now() - entry_time_dt
-            seconds_parked = duration.seconds
-            
-            # --- FETCH LIVE FEES FROM CLOUD DB ---
-            try:
-                settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
-                if settings_res.data:
-                    base_fee = float(settings_res.data[0]['base_fee'])
-                    rate_per_second = float(settings_res.data[0]['rate_per_second'])
-                else:
-                    base_fee, rate_per_second = 2.00, 0.10 # Failsafe
-            except:
-                base_fee, rate_per_second = 2.00, 0.10 # Failsafe
-                
-            fee = base_fee + (seconds_parked * rate_per_second)
-            
-            # --- NEW PAYMENT RECEIPT UI ---
-            payment_html = f"""
-            <div class='payment-card'>
-                <div class='payment-header'>🅿️ Parking Fee Summary</div>
-                <div class='payment-row'>
-                    <span>Ticket ID</span>
-                    <span class='payment-val'>#{random.randint(10000, 99999)}</span>
-                </div>
-                 <div class='payment-divider'></div>
-                <div class='payment-row'>
-                    <span>Slot Location</span>
-                    <span class='payment-val' style='font-size: 20px;'>{selected_slot_str}</span>
-                </div>
-                <div class='payment-row'>
-                    <span>Entry Time</span>
-                    <span class='payment-val'>{entry_time_dt.strftime('%I:%M:%S %p')}</span>
-                </div>
-                 <div class='payment-divider'></div>
-                 <div class='payment-row' style='background:#fff1f2; padding: 5px;'>
-                    <span><span class='demo-badge'>FYP DEMO</span> Duration</span>
-                    <span class='payment-val' style='color:#be123c;'>{seconds_parked} Seconds</span>
-                </div>
-                <div class='payment-row'>
-                    <span>Applied Rate</span>
-                    <span class='payment-val'>Base RM{base_fee:.2f} + RM{rate_per_second:.2f}/s</span>
-                </div>
-                <div class='payment-total-row'>
-                    <span class='payment-total-label'>Total Due</span>
-                    <span class='payment-total-amount'>RM {fee:.2f}</span>
-                </div>
-            </div>
-            """
-            st.markdown(payment_html, unsafe_allow_html=True)
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # --- PAYMENT CONFIRMATION BUTTON WITH 5-SECOND RESET TIMER ---
-            if st.button("💳 Confirm & Pay Now", type="primary", use_container_width=True):
-                # Show a loading spinner while processing
-                with st.spinner("Processing payment with gateway..."):
-                    time.sleep(1) # Simulate payment gateway delay
+                # Calculate Duration
+                try:
+                    entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
+                except:
+                    entry_time_dt = datetime.now() # Failsafe
                     
-                    try:
-                        # UPDATE SUPABASE: Use 'slot_id' directly instead of 'id'
-                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", selected_slot_str).execute()
+                duration = datetime.now() - entry_time_dt
+                seconds_parked = duration.seconds
+                
+                # --- FETCH LIVE FEES FROM CLOUD DB ---
+                try:
+                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
+                    if settings_res.data:
+                        base_fee = float(settings_res.data[0]['base_fee'])
+                        rate_per_second = float(settings_res.data[0]['rate_per_second'])
+                    else:
+                        base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                except:
+                    base_fee, rate_per_second = 2.00, 0.10 # Failsafe
+                    
+                fee = base_fee + (seconds_parked * rate_per_second)
+                
+                # --- PAYMENT RECEIPT UI ---
+                payment_html = f"""
+                <div class='payment-card'>
+                    <div class='payment-header'>🅿️ Parking Fee Summary</div>
+                    <div class='payment-row'>
+                        <span>Ticket ID</span>
+                        <span class='payment-val'>#{random.randint(10000, 99999)}</span>
+                    </div>
+                     <div class='payment-divider'></div>
+                    <div class='payment-row'>
+                        <span>Slot Location</span>
+                        <span class='payment-val' style='font-size: 20px;'>{entered_slot}</span>
+                    </div>
+                    <div class='payment-row'>
+                        <span>Entry Time</span>
+                        <span class='payment-val'>{entry_time_dt.strftime('%I:%M:%S %p')}</span>
+                    </div>
+                     <div class='payment-divider'></div>
+                     <div class='payment-row' style='background:#fff1f2; padding: 5px;'>
+                        <span><span class='demo-badge'>FYP DEMO</span> Duration</span>
+                        <span class='payment-val' style='color:#be123c;'>{seconds_parked} Seconds</span>
+                    </div>
+                    <div class='payment-row'>
+                        <span>Applied Rate</span>
+                        <span class='payment-val'>Base RM{base_fee:.2f} + RM{rate_per_second:.2f}/s</span>
+                    </div>
+                    <div class='payment-total-row'>
+                        <span class='payment-total-label'>Total Due</span>
+                        <span class='payment-total-amount'>RM {fee:.2f}</span>
+                    </div>
+                </div>
+                """
+                st.markdown(payment_html, unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # --- PAYMENT CONFIRMATION BUTTON WITH 5-SECOND RESET TIMER ---
+                if st.button("💳 Confirm & Pay Now", type="primary", use_container_width=True):
+                    with st.spinner("Processing payment with gateway..."):
+                        time.sleep(1) # Simulate payment gateway delay
                         
-                        st.success("✅ Payment Successful! Thank you for parking with us.")
-                        st.info("🔄 The parking slot status will reset in 5 seconds...")
-                        
-                        # THE 5-SECOND TIMER
-                        time.sleep(5)
-                        
-                        # Close payment section and reload page to show the green slot
-                        st.session_state.show_payment = False
-                        st.rerun()
-                        
-                    except Exception as e:
-                        st.error(f"Payment failed. Database connection error. ({e})")
+                        try:
+                            # UPDATE SUPABASE: Change status back to Vacant
+                            supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                            
+                            st.success("✅ Payment Successful! Thank you for parking with us.")
+                            st.info("🔄 The parking slot status will reset in 5 seconds...")
+                            
+                            time.sleep(5)
+                            
+                            st.session_state.show_payment = False
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"Payment failed. Database connection error. ({e})")
+            else:
+                st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
+        else:
+            st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
 
     st.markdown("---")
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
