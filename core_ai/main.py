@@ -136,7 +136,6 @@ if st.session_state.show_payment:
             
             # Get the specific row data for the selected slot
             row = occupied_df[occupied_df['slot_id'] == selected_slot_str].iloc[0]
-            slot_db_id = row['id'] # We need the primary key ID to update the DB later
             
             # Calculate Duration
             try:
@@ -202,8 +201,8 @@ if st.session_state.show_payment:
                     time.sleep(1) # Simulate payment gateway delay
                     
                     try:
-                        # UPDATE SUPABASE: Reset the slot status back to 'Vacant' and clear start_time
-                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("id", int(slot_db_id)).execute()
+                        # UPDATE SUPABASE: Use 'slot_id' directly instead of 'id'
+                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", selected_slot_str).execute()
                         
                         st.success("✅ Payment Successful! Thank you for parking with us.")
                         st.info("🔄 The parking slot status will reset in 5 seconds...")
@@ -219,7 +218,6 @@ if st.session_state.show_payment:
                         st.error(f"Payment failed. Database connection error. ({e})")
 
     st.markdown("---")
-
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
 WING_LAYOUTS = {
     'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
