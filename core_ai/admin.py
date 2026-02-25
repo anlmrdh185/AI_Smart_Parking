@@ -315,3 +315,7 @@ elif menu_selection == "📊 Generate Reports":
                     st.dataframe(display_df, use_container_width=True)
                     
     st.markdown("</div>", unsafe_allow_html=True)
+            
+    # --- NEW: Auto-refresh ONLY when looking at the Grid! ---
+    time.sleep(3)
+    st.rerun()
