@@ -12,50 +12,59 @@ st.markdown("""
     div[data-testid="metric-container"] {
         background-color: #ffffff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     }
-    /* Main container for the map */
-    .parking-map-container {
-        display: flex; flex-direction: column; align-items: center; margin-top: 20px;
-    }
+    .parking-map-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
     
-    /* --- GATES STYLING --- */
-    .gate-header {
-        width: 95%; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: flex-end;
-    }
-    .gate-group {
-        display: flex; align-items: center; gap: 5px;
-    }
-    .gate-label {
-        border: 1px solid #000; padding: 4px 10px; font-size: 12px; background: #fff; color: #000; font-weight: bold;
-    }
-    .gate-arrow {
-        font-size: 26px; color: #0f4c75; line-height: 1; margin-bottom: -2px;
-    }
+    /* GATES STYLING */
+    .gate-header { width: 95%; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: flex-end; }
+    .gate-group { display: flex; align-items: center; gap: 5px; }
+    .gate-label { border: 1px solid #000; padding: 4px 10px; font-size: 12px; background: #fff; color: #000; font-weight: bold; }
+    .gate-arrow { font-size: 26px; color: #0f4c75; line-height: 1; margin-bottom: -2px; }
 
-    /* Rows of parking slots */
-    .parking-row {
-        display: flex; flex-wrap: nowrap; gap: 6px; align-items: center;
-    }
-    /* The central road boundary */
-    .road-boundary {
-        width: 95%; height: 14px; background-color: #0f4c75; margin: 12px 0; border-radius: 2px;
-    }
-    
-    /* --- INCREASED SLOT SIZING --- */
+    /* PARKING GRID STYLING */
+    .parking-row { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
+    .road-boundary { width: 95%; height: 14px; background-color: #0f4c75; margin: 12px 0; border-radius: 2px; }
     .slot { 
-        width: 40px; height: 40px; border-radius: 6px; /* Increased from 32px to 40px */
-        display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        width: 40px; height: 40px; border-radius: 6px; display: flex; flex-direction: column; 
+        align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
     }
     .slot.vacant { background-color: #10b981; }   
     .slot.occupied { background-color: #ef4444; } 
     .slot.oku-vacant { background-color: #38bdf8; } 
     .slot.yellow { background-color: #fbbf24; box-shadow: none; } 
     .slot.gap { background-color: transparent; box-shadow: none; width: 12px; } 
+    .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; } 
+    .slot-id { font-size: 11px; line-height: 1; } 
     
-    .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; } /* Bigger Car/Wheelchair */
-    .slot-id { font-size: 11px; line-height: 1; } /* Bigger text */
+    /* --- NEW PREDICTION CENTER STYLING --- */
+    .pred-card-blue { background-color: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dbeafe; }
+    .pred-card-purple { background-color: #faf5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f3e8ff; }
+    .pred-header { display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 8px; }
+    .pred-header-val { font-weight: bold; color: #1e293b; font-size: 14px; }
     
-    .forecast-card { background-color: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e0e0e0;}
+    /* Progress Bars */
+    .progress-track { width: 100%; background-color: #ffffff; border-radius: 4px; height: 8px; overflow: hidden; border: 1px solid #e2e8f0;}
+    .progress-fill-blue { background-color: #2563eb; height: 100%; border-radius: 4px; }
+    
+    /* Badges & Text */
+    .badge-low { background-color: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .badge-high { background-color: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .badge-med { background-color: #fef9c3; color: #854d0e; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .forecast-val { font-size: 16px; font-weight: bold; color: #7e22ce; }
+    .sub-text { font-size: 11px; color: #64748b; margin-top: 8px; }
+    
+    /* Best Times Pills */
+    .time-pill { background-color: #ecfdf5; color: #059669; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+    
+    /* Chart Rows */
+    .bar-chart-row { display: flex; align-items: center; font-size: 11px; margin-bottom: 8px; color: #475569;}
+    .bar-chart-time { width: 40px; font-weight: 500;}
+    .bar-chart-track { flex-grow: 1; background-color: #f1f5f9; height: 6px; border-radius: 3px; margin: 0 10px; overflow: hidden; }
+    .bar-chart-fill { height: 100%; border-radius: 3px; }
+    .bar-chart-val { width: 30px; text-align: right; }
+    .fill-red { background-color: #ef4444; }
+    .fill-orange { background-color: #f97316; }
+    .fill-yellow { background-color: #eab308; }
+    .fill-green { background-color: #10b981; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -127,26 +136,11 @@ if st.session_state.show_payment:
 
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
 WING_LAYOUTS = {
-    'W1': {
-        'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)],
-        'bottom': [f'{i:02}' for i in range(16, 31)]
-    },
-    'W3A': {
-        'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 11)],
-        'bottom': [f'{i:02}' for i in range(11, 22)]
-    },
-    'W5': {
-        'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(3, 17)],
-        'bottom': ['02', 'YELLOW'] + [f'{i:02}' for i in range(17, 31)]
-    },
-    'W7': {
-        'top': [f'{i:02}' for i in range(1, 14)],
-        'bottom': [f'{i:02}' for i in range(14, 27)]
-    },
-    'W8': {
-        'top': [f'{i:02}' for i in range(1, 13)],
-        'bottom': [f'{i:02}' for i in range(13, 25)]
-    }
+    'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
+    'W3A': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 11)], 'bottom': [f'{i:02}' for i in range(11, 22)]},
+    'W5': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(3, 17)], 'bottom': ['02', 'YELLOW'] + [f'{i:02}' for i in range(17, 31)]},
+    'W7': {'top': [f'{i:02}' for i in range(1, 14)], 'bottom': [f'{i:02}' for i in range(14, 27)]},
+    'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]}
 }
 OKU_SLOTS = ['W1-01', 'W3A-01', 'W5-01', 'W5-02', 'W5-03']
 
@@ -175,11 +169,8 @@ with left_panel:
         
         if selected_wing in WING_LAYOUTS:
             layout = WING_LAYOUTS[selected_wing]
-            
-            # Start Main Container
             html = "<div class='parking-map-container'>"
             
-            # --- SEPARATED ENTRY/EXIT GATES ABOVE THE LOT ---
             html += """
             <div class='gate-header'>
                 <div class='gate-group'>
@@ -193,9 +184,7 @@ with left_panel:
             </div>
             """
             
-            # --- TOP ROW RENDERING ---
-            html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'>"
-            html += "<div class='parking-row'>"
+            html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['top']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
@@ -207,12 +196,9 @@ with left_panel:
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
             html += "</div></div>" 
 
-            # --- CENTRAL ROAD BOUNDARY ---
             html += "<div class='road-boundary'></div>"
             
-            # --- BOTTOM ROW RENDERING ---
-            html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'>"
-            html += "<div class='parking-row'>"
+            html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['bottom']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
@@ -222,35 +208,54 @@ with left_panel:
                     status_class = "occupied" if status == "Occupied" else ("oku-vacant" if is_oku else "vacant")
                     icon = "♿" if is_oku else "🚗"
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
-            html += "</div></div>" 
-
-            html += "</div>" # Close main container
+            html += "</div></div></div>" 
             st.markdown(html, unsafe_allow_html=True)
     else:
         st.warning("No data found in Supabase.")
 
-# --- 6. RIGHT PANEL: PREDICTIONS ---
+# --- 6. RIGHT PANEL: CUSTOM PREDICTION UI ---
 with right_panel:
-    st.subheader("📈 Occupancy Prediction")
+    st.markdown("#### 📈 Occupancy Prediction")
     
-    st.markdown("<div class='forecast-card'>", unsafe_allow_html=True)
-    st.write(f"**Current Occupancy:** {occupancy_rate}%")
-    st.progress(occupancy_rate / 100.0)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.markdown("<div class='forecast-card'>", unsafe_allow_html=True)
-    st.write("⏱️ **Next Hour Forecast**")
+    # Logic for the dynamic Next Hour Forecast
     forecast = min(100, occupancy_rate + 5)
-    color = "Red" if forecast > 80 else "Orange" if forecast > 50 else "Green"
-    st.write(f"<span style='color:{color}; font-weight:bold; font-size:20px'>{forecast}%</span>", unsafe_allow_html=True)
-    st.caption("Based on current entry trends.")
-    st.markdown("</div>", unsafe_allow_html=True)
+    if forecast < 50:
+        badge_class = "badge-low"
+        badge_text = "Low"
+        sub_text = "Off-peak hours"
+    elif forecast < 80:
+        badge_class = "badge-med"
+        badge_text = "Medium"
+        sub_text = "Steady traffic"
+    else:
+        badge_class = "badge-high"
+        badge_text = "High"
+        sub_text = "Peak hours approaching"
+
+    # FLATTENED HTML to prevent Streamlit from making it a code block
+    pred_html = f"<div class='pred-card-blue'><div class='pred-header'><span>Current Occupancy</span><span class='pred-header-val'>{occupancy_rate}%</span></div><div class='progress-track'><div class='progress-fill-blue' style='width: {occupancy_rate}%;'></div></div></div>"
     
-    st.markdown("<div class='forecast-card'>", unsafe_allow_html=True)
-    st.write("🕒 **Best Times to Visit**")
-    st.write("🟢 Early Morning: `6 AM - 8 AM`")
-    st.write("🟢 Late Evening: `9 PM - 11 PM`")
-    st.markdown("</div>", unsafe_allow_html=True)
+    pred_html += f"<div class='pred-card-purple'><div class='pred-header'><span>🕒 Next Hour Forecast</span><span class='forecast-val'>{forecast}%</span></div><span class='{badge_class}'>{badge_text}</span><div class='sub-text'>{sub_text}</div></div>"
+    
+    pred_html += "<div style='font-size: 13px; color: #059669; margin-bottom: 8px;'>① Best Times to Visit</div>"
+    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Early Morning</span><span>6 AM - 8 AM</span></div>"
+    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Late Evening</span><span>9 PM - 11 PM</span></div>"
+    
+    pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast</div>"
+    
+    # Mock data for the bar chart
+    forecast_data = [
+        ("8 AM", 75, "fill-orange"), ("10 AM", 82, "fill-orange"),
+        ("12 PM", 95, "fill-red"), ("2 PM", 88, "fill-red"),
+        ("4 PM", 78, "fill-orange"), ("6 PM", 90, "fill-red"),
+        ("8 PM", 65, "fill-yellow"), ("10 PM", 45, "fill-green")
+    ]
+    
+    # FLATTENED Loop
+    for time_label, val, color_class in forecast_data:
+        pred_html += f"<div class='bar-chart-row'><div class='bar-chart-time'>{time_label}</div><div class='bar-chart-track'><div class='bar-chart-fill {color_class}' style='width: {val}%;'></div></div><div class='bar-chart-val'>{val}%</div></div>"
+        
+    st.markdown(pred_html, unsafe_allow_html=True)
 
 time.sleep(3)
 st.rerun()
