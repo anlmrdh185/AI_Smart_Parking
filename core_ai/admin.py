@@ -271,8 +271,8 @@ elif menu_selection == "⚙️ Settings & Configuration":
         st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
         st.markdown("<div class='settings-title'>📍 Facility Information</div>", unsafe_allow_html=True)
         
-        f_name = st.text_input("Facility Name", value="Smart Parking Center")
-        f_address = st.text_input("Address", value="123 Main Street, City Center")
+        f_name = st.text_input("Facility Name", value="Outside Parking Mall")
+        f_address = st.text_input("Address", value="QueenBays Mall, Pulau Penang")
         f_levels = st.text_input("Total Levels", value="5")
         f_hours = st.text_input("Operating Hours", value="24/7")
         
