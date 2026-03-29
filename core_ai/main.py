@@ -204,7 +204,7 @@ if st.session_state.show_payment:
                 # --- PAYMENT CONFIRMATION BUTTON WITH 5-SECOND RESET TIMER ---
                 if st.button("💳 Confirm & Pay Now", type="primary", use_container_width=True):
                     with st.spinner("Processing payment with gateway..."):
-                        time.sleep(120) # Simulate payment gateway delay
+                        time.sleep(5) # Simulate payment gateway delay
                         
                         try:
                             # UPDATE SUPABASE: Change status back to Vacant
@@ -214,7 +214,7 @@ if st.session_state.show_payment:
                             st.info("🔄 You have 2 minutes to exit. The parking slot status will reset shortly...")
                             
                             # THE 2-MINUTE TIMER (120 seconds)
-                            time.sleep(5)
+                            time.sleep(120)
                             
                             st.session_state.show_payment = False
                             st.rerun()
