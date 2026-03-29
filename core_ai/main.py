@@ -214,7 +214,7 @@ if st.session_state.show_payment:
                             st.info("🔄 You have 2 minutes to exit. The parking slot status will reset shortly...")
                             
                             # THE 2-MINUTE TIMER (120 seconds)
-                            time.sleep(120)
+                            time.sleep(5)
                             
                             st.session_state.show_payment = False
                             st.rerun()
