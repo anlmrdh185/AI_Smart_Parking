@@ -284,6 +284,15 @@ if st.session_state.show_payment:
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                         st.session_state.payment_stage = "success"
                         st.balloons()
+                        st.markdown(f"""
+                            <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
+                                <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
+                                <hr>
+                                <p style='font-size: 18px;'><b>Status:</b> Paid</p>
+                                <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
+                                <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
+                            </div>
+                        """, unsafe_allow_html=True)
                         st.rerun()
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
