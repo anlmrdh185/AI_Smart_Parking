@@ -222,49 +222,52 @@ with col4:
 
 st.markdown("---")
 
+if 'payment_stage' not in st.session_state:
+    st.session_state.payment_stage = "summary" # summary -> qr -> success
+
 if st.session_state.show_payment:
     st.info("💳 **Secure Payment Portal**")
     
     # 1. User types in their Slot ID
     entered_slot = st.text_input("Enter Your Parking Slot ID (e.g., W1-05):", placeholder="W1-05").strip().upper()
     
-    if entered_slot:
-        # 2. Check if the slot exists in the database
-        if not df_slots.empty and entered_slot in df_slots['slot_id'].values:
-            row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
+    if entered_slot and entered_slot in df_slots['slot_id'].values:
+        row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
             
             # 3. Check if the car is actually parked there
             if row['status'] == 'Occupied':
                 
-                # Calculate Duration
-                try:
-                    entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
-                except:
-                    entry_time_dt = datetime.now() # Failsafe
+                if st.session_state.payment_stage == "summary":
                     
-                duration = datetime.now() - entry_time_dt
-                seconds_parked = duration.seconds
+                    # Calculate Duration
+                    try:
+                        entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
+                    except:
+                        entry_time_dt = datetime.now() # Failsafe
+                    
+                    duration = datetime.now() - entry_time_dt
+                    seconds_parked = duration.seconds
                 
-                # --- NEW MATH: Calculate in blocks of 10 seconds ---
-                blocks_of_10s = seconds_parked // 10
+                    # --- NEW MATH: Calculate in blocks of 10 seconds ---
+                    blocks_of_10s = seconds_parked // 10
                 
-                # --- FETCH LIVE FEES FROM CLOUD DB ---
-                try:
-                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
-                    if settings_res.data:
-                        base_fee = float(settings_res.data[0]['base_fee'])
-                        # We will treat the database value as the rate per 10 seconds now
-                        rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
-                    else:
+                    # --- FETCH LIVE FEES FROM CLOUD DB ---
+                    try:
+                        settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
+                        if settings_res.data:
+                            base_fee = float(settings_res.data[0]['base_fee'])
+                            # We will treat the database value as the rate per 10 seconds now
+                            rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
+                        else:
+                            base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
+                    except:
                         base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
-                except:
-                    base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
                     
-                # Multiply the rate by the number of 10-second blocks
-                fee = base_fee + (blocks_of_10s * rate_per_10_sec)
+                    # Multiply the rate by the number of 10-second blocks
+                    fee = base_fee + (blocks_of_10s * rate_per_10_sec)
                 
-                # --- CREATE A STABLE TICKET ID ---
-                stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
+                    # --- CREATE A STABLE TICKET ID ---
+                    stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
                 # --- PAYMENT RECEIPT UI ---
                 payment_html = f"""
@@ -299,25 +302,35 @@ if st.session_state.show_payment:
                 </div>
                 """
                 st.markdown(payment_html, unsafe_allow_html=True)
-                st.markdown("<br>", unsafe_allow_html=True)
                 
-                # --- PAYMENT CONFIRMATION BUTTON WITH 5-SECOND RESET TIMER ---
-                if st.button("💳 Confirm & Pay Now", type="primary", use_container_width=True):
-                    with st.spinner("Processing payment with gateway..."):
-                        time.sleep(120) # Simulate payment gateway delay
-                        
-                        try:
-                            # UPDATE SUPABASE: Change status back to Vacant
-                            supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                            
-                            st.success("✅ Payment Successful! Thank you for parking with us.")
-                            st.info("🔄 You have 2 minutes to exit. The parking slot status will reset shortly...")
-                            
-                            # THE 2-MINUTE TIMER (120 seconds)
-                            time.sleep(5)
-                            
-                            st.session_state.show_payment = False
-                            st.rerun()
+                # --- STAGE 2: MOCK QR CODE ---
+            elif st.session_state.payment_stage == "qr":
+                st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+                st.subheader("Scan to Pay")
+                # Using a placeholder QR for the demo
+                st.image("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MockPayment", width=250)
+                st.info("Please scan the DuitNow QR above to complete RM " + f"{fee:.2f}")
+                
+                if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
+                    with st.spinner("Verifying transaction..."):
+                        time.sleep(2) # Mock verification
+                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                        st.session_state.payment_stage = "success"
+                        st.rerun()
+                
+                if st.button("⬅️ Cancel"):
+                    st.session_state.payment_stage = "summary"
+                    st.rerun()
+
+            # --- STAGE 3: SUCCESS ---
+            elif st.session_state.payment_stage == "success":
+                st.success(f"✅ Payment Successful for {entered_slot}!")
+                st.balloons()
+                st.info("🔄 You have 15 minutes to exit the facility.")
+                if st.button("Finish"):
+                    st.session_state.show_payment = False
+                    st.session_state.payment_stage = "summary"
+                    st.rerun()
                             
                         except Exception as e:
                             st.error(f"Payment failed. Database connection error. ({e})")
