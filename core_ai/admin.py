@@ -154,6 +154,7 @@ if menu_selection == "🔍 Parking Monitoring":
             </div>
         </div>
         """, unsafe_allow_html=True)
+    
     df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
