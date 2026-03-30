@@ -256,28 +256,33 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "qr"
                     st.rerun()
 
+            # --- STAGE 2: CENTERED QR CODE ---
             elif st.session_state.payment_stage == "qr":
-                st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-                st.subheader("Scan to Pay")
-                # Using dynamic fee in the QR data
-                qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Pay_RM_{fee:.2f}"
-                st.image(qr_url, width=250)
-                st.info(f"Please scan the QR above to complete payment of **RM {fee:.2f}**")
-                
+                # FIX 2: Use HTML centering for the QR Image
+                st.markdown("""
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                        <h3 style="margin-bottom: 20px;">Scan to Pay</h3>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MockPayment" width="200">
+                        <p style="margin-top: 20px; color: #64748b;">Please scan the DuitNow QR above</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                    
+                st.markdown(f"<h2 style='text-align:center; color:#8b5cf6;'>RM {fee:.2f}</h2>", unsafe_allow_html=True)
+                    
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    with st.spinner("Verifying transaction..."):
-                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                        st.session_state.payment_stage = "success"
-                        st.rerun()
+                    supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                    st.session_state.payment_stage = "success"
+                    st.rerun()
                 
                 if st.button("⬅️ Cancel"):
                     st.session_state.payment_stage = "summary"
                     st.rerun()
 
+            # --- STAGE 3: SUCCESS ---
             elif st.session_state.payment_stage == "success":
-                st.success(f"✅ Payment Successful for {slot_id}!")
+                st.success("✅ Payment Successful!")
                 st.balloons()
-                if st.button("Close & Finish"):
+                if st.button("Back to Dashboard", use_container_width=True):
                     st.session_state.show_payment = False
                     st.session_state.payment_stage = "summary"
                     st.rerun()
