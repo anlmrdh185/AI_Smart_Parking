@@ -102,7 +102,6 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
-    """, unsafe_allow_html=True)
 
 # --- 2. SUPABASE CONNECTION ---
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
