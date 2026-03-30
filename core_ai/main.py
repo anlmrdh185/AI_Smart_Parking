@@ -193,11 +193,23 @@ if 'payment_stage' not in st.session_state:
     st.session_state.payment_stage = "summary" # summary -> qr -> success
 
 if st.session_state.show_payment:
+    st.markdown("---")
     st.info("💳 **Secure Payment Portal**")
     
-    # 1. User types in their Slot ID
-    entered_slot = st.text_input("Enter Your Parking Slot ID (e.g., W1-05):", placeholder="W1-05").strip().upper()
-    
+    # Step 1: Single Entry for Slot ID
+    # We use session_state to "lock" the ID once entered so it doesn't ask again
+    if 'confirmed_slot' not in st.session_state:
+        st.session_state.confirmed_slot = None
+
+    if st.session_state.payment_stage == "summary":
+        entered_slot = st.text_input("Enter Your Parking Slot ID:", placeholder="e.g. W1-05").strip().upper()
+        if entered_slot:
+            st.session_state.confirmed_slot = entered_slot
+    else:
+        # Displays the slot ID as a header in Step 2 and 3 so user knows which one they are paying for
+        st.markdown(f"### 🅿️ Slot: {st.session_state.confirmed_slot}")
+        entered_slot = st.session_state.confirmed_slot
+
     if entered_slot and entered_slot in df_slots['slot_id'].values:
         row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
 
@@ -256,49 +268,45 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "qr"
                     st.rerun()
 
-            # --- STAGE 2: CENTERED QR CODE ---
+            # --- STAGE 2: CENTERED QR ---
             elif st.session_state.payment_stage == "qr":
-                # FIX 2: Use HTML centering for the QR Image
-                st.markdown("""
+                st.markdown(f"""
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                        <h3 style="margin-bottom: 20px;">Scan to Pay</h3>
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MockPayment" width="200">
-                        <p style="margin-top: 20px; color: #64748b;">Please scan the DuitNow QR above</p>
+                        <h3 style="color: #1e293b;">Scan to Pay RM {fee:.2f}</h3>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-{entered_slot}" style="border: 5px solid #3b82f6; border-radius: 10px;">
+                        <p style="margin-top: 15px; color: #64748b;">Scan with your banking app</p>
                     </div>
                 """, unsafe_allow_html=True)
-                    
-                st.markdown(f"<h2 style='text-align:center; color:#8b5cf6;'>RM {fee:.2f}</h2>", unsafe_allow_html=True)
-                    
-                if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                    st.session_state.payment_stage = "success"
-                    st.rerun()
                 
-                if st.button("⬅️ Cancel"):
-                    st.session_state.payment_stage = "summary"
-                    st.rerun()
+                if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
+                    with st.spinner("Finalizing receipt..."):
+                        # Update Supabase status to Vacant
+                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                        st.session_state.payment_stage = "success"
+                        st.rerun()
 
-            # --- STAGE 3: SUCCESS ---
+            # --- STAGE 3: DIRECT ACTION RECEIPT ---
             elif st.session_state.payment_stage == "success":
                 st.success(f"✅ Payment Successful for {entered_slot}!")
                 st.balloons()
                 
-                # ADD THIS BLOCK BACK:
+                # The "Action" content you requested
                 st.markdown(f"""
-                    <div style='background-color: #f0fdf4; padding: 20px; border-radius: 10px; border: 1px solid #bbf7d0;'>
-                        <h3 style='color: #166534; margin-top: 0;'>Final Receipt</h3>
-                        <p style='margin-bottom: 5px;'><b>Status:</b> Paid</p>
-                        <p style='margin-bottom: 5px;'><b>Action:</b> You may now exit the parking lot.</p>
-                        <p style='margin-bottom: 0;'><b>Grace Period:</b> 15 Minutes</p>
+                    <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
+                        <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
+                        <hr>
+                        <p style='font-size: 18px;'><b>Status:</b> Paid</p>
+                        <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
+                        <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
                     </div>
-                    <br>
                 """, unsafe_allow_html=True)
                 
-                if st.button("Finish & Return to Dashboard", use_container_width=True):
+                if st.button("Finish & Return to Home", use_container_width=True):
+                    # Reset all states for the next user
                     st.session_state.show_payment = False
                     st.session_state.payment_stage = "summary"
+                    del st.session_state.confirmed_slot
                     st.rerun()
-
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
