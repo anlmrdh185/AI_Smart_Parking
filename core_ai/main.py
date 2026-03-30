@@ -241,6 +241,7 @@ with left_panel:
         st.warning("No data found in Supabase.")
 
 # --- 6. RIGHT PANEL: DATA-DRIVEN PREDICTION UI ---
+# --- 6. RIGHT PANEL: DATA-DRIVEN PREDICTION UI ---
 with right_panel:
     st.markdown("#### 📈 Occupancy Prediction")
     
