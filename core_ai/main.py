@@ -300,8 +300,6 @@ if st.session_state.show_payment:
                             st.session_state.confirmed_slot = None
                             st.rerun()
         
-        else:
-            st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
         st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
 
