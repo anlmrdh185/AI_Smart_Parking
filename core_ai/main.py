@@ -275,12 +275,12 @@ if st.session_state.show_payment:
                     st.rerun()
 
             elif st.session_state.payment_stage == "success":
-            st.success(f"✅ Payment Successful for {entered_slot}!")
-            st.balloons()
-            if st.button("Close & Finish"):
-                st.session_state.show_payment = False
-                st.session_state.payment_stage = "summary"
-                st.rerun()
+                st.success(f"✅ Payment Successful for {entered_slot}!")
+                st.balloons()
+                if st.button("Close & Finish"):
+                    st.session_state.show_payment = False
+                    st.session_state.payment_stage = "summary"
+                    st.rerun()
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
