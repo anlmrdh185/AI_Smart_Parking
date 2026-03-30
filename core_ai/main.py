@@ -272,20 +272,21 @@ if st.session_state.show_payment:
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
                     supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                     st.session_state.payment_stage = "success"
+
+                    # --- STAGE 3: SUCCESS ---
+                    if st.session_state.payment_stage == "success":
+                        st.success("✅ Payment Successful!")
+                        st.balloons()
+                        if st.button("Back to Dashboard", use_container_width=True):
+                            st.session_state.show_payment = False
+                            st.session_state.payment_stage = "summary"
+                            
                     st.rerun()
                 
                 if st.button("⬅️ Cancel"):
                     st.session_state.payment_stage = "summary"
                     st.rerun()
 
-            # --- STAGE 3: SUCCESS ---
-            elif st.session_state.payment_stage == "success":
-                st.success("✅ Payment Successful!")
-                st.balloons()
-                if st.button("Back to Dashboard", use_container_width=True):
-                    st.session_state.show_payment = False
-                    st.session_state.payment_stage = "summary"
-                    st.rerun()
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
