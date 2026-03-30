@@ -48,44 +48,9 @@ st.markdown("""
     .slot { width: 35px; height: 35px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
     .slot.vacant { background-color: #10b981; } .slot.occupied { background-color: #ef4444; } .slot.oku-vacant { background-color: #38bdf8; } .slot.yellow { background-color: #fbbf24; box-shadow: none; } .slot.gap { background-color: transparent; box-shadow: none; width: 12px; }
     .car-icon { font-size: 16px; margin-bottom: 2px; line-height: 1; } .slot-id { font-size: 9px; line-height: 1; }
-    </style># Updated CSS for both files
-    <style>
-    /* 1. Main Header with Logo */
-    .main-header {
-        display: flex;
-        align-items: center;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        border: 2px solid #8b5cf6; /* Purple border */
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    .logo-img {
-        width: 60px;
-        margin-right: 20px;
-    }
-    .header-text h1 {
-        margin: 0;
-        color: #1e293b;
-        font-size: 28px;
-    }
-    
-    /* 2. Structured Metric Boxes */
-    [data-testid="stMetric"] {
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0; /* Soft gray border */
-        padding: 15px 20px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stMetric"]:hover {
-        border-color: #8b5cf6;
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
-    }
     </style>
     """, unsafe_allow_html=True)
-    
+
 # --- 2. SUPABASE CONNECTION (FIXED CACHING!) ---
 @st.cache_resource
 def init_connection():
@@ -143,18 +108,6 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "🔍 Parking Monitoring":
-
-    # --- ADMIN HEADER ---
-    st.markdown("""
-        <div class="main-header">
-            <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
-            <div class="header-text">
-                <h1>Admin Command Center</h1>
-                <p style="margin:0; color:#64748b;">Monitoring & System Controls</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
     df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
