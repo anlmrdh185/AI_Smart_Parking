@@ -8,24 +8,8 @@ from supabase import create_client
 st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="🔐")
 
 st.markdown("""
-    To fix the missing boxes in your admin.py and update the logo to the one you provided, we need to adjust the CSS selectors and the HTML structure.
-
-Streamlit metrics sometimes use a specific data-testid="metric-container" instead of stMetric. By using both in our CSS, we ensure the boxes appear. I have also replaced the built-in icon with the new logo image you uploaded.
-
-Updated admin.py
-Python
-import streamlit as st
-import pandas as pd
-import time
-from datetime import datetime, date, time as dt_time
-from supabase import create_client
-
-# --- 1. PAGE CONFIGURATION & CSS ---
-st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="🔐")
-
-st.markdown("""
-   <style>
-    /* 1. Admin Header & Logo Styling */
+    <style>
+    /* ADDED: Admin Header & Logo Styling */
     .admin-logo-header {
         display: flex;
         align-items: center;
@@ -40,31 +24,31 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     
-    /* Updated Logo Style to match your new image */
-    .logo-img {
-        width: 65px;
-        height: auto;
+    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    .logo-box {
+        width: 60px;
+        height: 60px;
+        background-color: #3b82f6; /* Blue background to match design */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         margin-right: 20px;
+        color: white;
+        font-size: 40px; /* Large built-in icon */
+        font-weight: bold;
+        line-height: 1;
     }
 
-    /* 2. FIXED: Metric Box Styling */
-    /* Target both standard and test-id containers to ensure boxes show up */
-    [data-testid="stMetric"], [data-testid="metric-container"] {
-        background-color: #ffffff !important;
-        border: 2px solid #e2e8f0 !important;
-        padding: 20px !important;
-        border-radius: 12px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-        display: block !important;
+    /* ADDED: Box styling for metrics */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    
-    /* Ensure metric labels are visible inside the new boxes */
-    [data-testid="stMetricLabel"] {
-        font-weight: 600 !important;
-        color: #64748b !important;
-    }
-    <style/>
-    <sytle> 
+    <style>
     .stApp { background-color: #f8fafc; }
     .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #8b5cf6; }
     div[data-testid="metric-container"] { background-color: #ffffff; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
