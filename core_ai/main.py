@@ -240,7 +240,7 @@ if st.session_state.show_payment:
             stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
             # --- PAYMENT STAGES (FIXED INDENTATION) ---
-                payment_html = f"""
+            payment_html = f"""
                 <div class='payment-card'>
                     <div class='payment-header'>🅿️ Parking Fee Summary</div>
                     <div class='payment-row'><span>Ticket ID</span><span class='payment-val'>#{stable_ticket_id}</span></div>
