@@ -150,7 +150,7 @@ with st.sidebar:
 if menu_selection == "🔍 Parking Monitoring":
     st.markdown("""
         <div class="admin-logo-header">
-            <div class="logo-box">🅿️</div>
+            <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
             <div class="header-text">
                 <h1 style="margin:0; color:#1e293b;">Admin Command Center</h1>
                 <p style="margin:0; color:#8b5cf6; font-weight:bold;">Secure Facility Monitoring</p>
