@@ -275,7 +275,7 @@ if st.session_state.show_payment:
                     st.rerun()
 
             elif st.session_state.payment_stage == "success":
-                st.success(f"✅ Payment Successful for {entered_slot}!")
+                st.success(f"✅ Payment Successful for {slot_id}!")
                 st.balloons()
                 if st.button("Close & Finish"):
                     st.session_state.show_payment = False
