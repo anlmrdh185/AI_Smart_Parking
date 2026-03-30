@@ -9,17 +9,15 @@ st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="
 
 st.markdown("""
     <style>
-    /* ADDED: Admin Header & Logo Styling */
-    .admin-logo-header {
+   <style>
+    /* ADDED: Main Header & Logo Styling */
+    .main-header {
         display: flex;
         align-items: center;
         background-color: #ffffff;
         padding: 20px;
         border-radius: 15px;
-        border-left: 10px solid #8b5cf6;
-        border-top: 1px solid #e2e8f0;
-        border-right: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
+        border: 2px solid #3b82f6;
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
@@ -148,7 +146,7 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "üîç Parking Monitoring":
-    st.markdown("""
+   st.markdown("""
         <div class="admin-logo-header">
             <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
             <div class="header-text">
