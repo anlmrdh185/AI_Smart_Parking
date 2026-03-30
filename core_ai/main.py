@@ -203,11 +203,11 @@ if st.session_state.show_payment:
 
             # 3. Check if the car is actually parked there
         if row['status'] == 'Occupied':
-
-            if st.session_state.payment_stage == "summary":    
+    
                 # Calculate Duration
                 try:
-                    entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
+                    entry_time_str = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0]
+                    entry_time_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
                 except:
                     entry_time_dt = datetime.now() # Failsafe
                     
@@ -236,14 +236,15 @@ if st.session_state.show_payment:
                 stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
                 # --- PAYMENT RECEIPT UI ---
-                payment_html = f"""
-                <div class='payment-card'>
-                    <div class='payment-header'>🅿️ Parking Fee Summary</div>
-                    <div class='payment-row'>
-                        <span>Ticket ID</span>
-                        <span class='payment-val'>#{stable_ticket_id}</span>
+                if st.session_state.payment_stage == "summary":
+                    payment_html = f"""
+                    <div class='payment-card'>
+                        <div class='payment-header'>🅿️ Parking Fee Summary</div>
+                        <div class='payment-row'>
+                            <span>Ticket ID</span>
+                            <span class='payment-val'>#{stable_ticket_id}</span>
                     </div>
-                     <div class='payment-divider'></div>
+                    <div class='payment-divider'></div>
                     <div class='payment-row'>
                         <span>Slot Location</span>
                         <span class='payment-val' style='font-size: 20px;'>{entered_slot}</span>
@@ -279,11 +280,10 @@ if st.session_state.show_payment:
                 st.subheader("Scan to Pay")
                 # Using a placeholder QR for the demo
                 st.image("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MockPayment", width=250)
-                st.info("Please scan the DuitNow QR above to complete RM " + f"{fee:.2f}")
+                st.info(f"Please scan the QR above to complete payment of **RM {fee:.2f}**")
                 
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    with st.spinner("Verifying transaction..."):
-                        time.sleep(2) # Mock verification
+                    with st.spinner("Verifying transaction..."): # Mock verification
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                         st.session_state.payment_stage = "success"
                         st.rerun()
@@ -302,7 +302,6 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "summary"
                     st.rerun()
                             
-                
             else:
                 st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
         else:
