@@ -152,39 +152,6 @@ def get_cloud_data(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
 
-# --- INSERT AFTER CSS, BEFORE HEADER ---
-
-# 1. Initialize selection in session state if not exists
-if 'selected_place' not in st.session_state:
-    st.session_state.selected_place = None
-
-# 2. Hero Selection Page (This shows if no place is picked)
-if st.session_state.selected_place is None:
-    st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
-    
-    # Dropdown for locations
-    place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose location...")
-    
-    if st.button("Enter Dashboard", type="primary"):
-        if place:
-            st.session_state.selected_place = place
-            st.rerun()
-    st.stop() # Stops everything below from running until selection is made
-
-# 3. If place is USM Mosque, show "No Data" and stop
-if st.session_state.selected_place == "USM Mosque":
-    st.title("📍 USM Mosque")
-    st.info("System Status: Under Maintenance / Calibration")
-    st.warning("No live AI data is available for USM Mosque at this time. Please check back later.")
-    if st.button("⬅️ Back to Selection"):
-        st.session_state.selected_place = None
-        st.rerun()
-    st.stop() # Prevents Queensbay code from running
-
-# --- YOUR EXISTING QUEENSBAY CODE CONTINUES BELOW THIS ---
-# (The Header, Metrics, and Grid View you already built)
-
 df_slots = get_cloud_data("slots")
 
 if 'show_payment' not in st.session_state:
@@ -233,41 +200,40 @@ if st.session_state.show_payment:
     
     if entered_slot and entered_slot in df_slots['slot_id'].values:
         row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
-            
-        # 3. Check if the car is actually parked there
+
+            # 3. Check if the car is actually parked there
         if row['status'] == 'Occupied':
-                
-                if st.session_state.payment_stage == "summary":
+
+            if st.session_state.payment_stage == "summary":    
+                # Calculate Duration
+                try:
+                    entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
+                except:
+                    entry_time_dt = datetime.now() # Failsafe
                     
-                    # Calculate Duration
-                    try:
-                        entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
-                    except:
-                        entry_time_dt = datetime.now() # Failsafe
-                    
-                    duration = datetime.now() - entry_time_dt
-                    seconds_parked = duration.seconds
+                duration = datetime.now() - entry_time_dt
+                seconds_parked = duration.seconds
                 
-                    # --- NEW MATH: Calculate in blocks of 10 seconds ---
-                    blocks_of_10s = seconds_parked // 10
+                # --- NEW MATH: Calculate in blocks of 10 seconds ---
+                blocks_of_10s = seconds_parked // 10
                 
-                    # --- FETCH LIVE FEES FROM CLOUD DB ---
-                    try:
-                        settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
-                        if settings_res.data:
-                            base_fee = float(settings_res.data[0]['base_fee'])
-                            # We will treat the database value as the rate per 10 seconds now
-                            rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
-                        else:
-                            base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
-                    except:
+                # --- FETCH LIVE FEES FROM CLOUD DB ---
+                try:
+                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
+                    if settings_res.data:
+                        base_fee = float(settings_res.data[0]['base_fee'])
+                        # We will treat the database value as the rate per 10 seconds now
+                        rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
+                    else:
                         base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
+                except:
+                    base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
                     
-                    # Multiply the rate by the number of 10-second blocks
-                    fee = base_fee + (blocks_of_10s * rate_per_10_sec)
+                # Multiply the rate by the number of 10-second blocks
+                fee = base_fee + (blocks_of_10s * rate_per_10_sec)
                 
-                    # --- CREATE A STABLE TICKET ID ---
-                    stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
+                # --- CREATE A STABLE TICKET ID ---
+                stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
                 # --- PAYMENT RECEIPT UI ---
                 payment_html = f"""
@@ -303,8 +269,12 @@ if st.session_state.show_payment:
                 """
                 st.markdown(payment_html, unsafe_allow_html=True)
                 
-                # --- STAGE 2: MOCK QR CODE ---
-        elif st.session_state.payment_stage == "qr":
+                if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
+                    st.session_state.payment_stage = "qr"
+                    st.rerun()
+                
+            # --- STAGE 2: MOCK QR CODE ---
+            elif st.session_state.payment_stage == "qr":
                 st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
                 st.subheader("Scan to Pay")
                 # Using a placeholder QR for the demo
@@ -332,8 +302,8 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "summary"
                     st.rerun()
                             
-                        except Exception as e:
-                            st.error(f"Payment failed. Database connection error. ({e})")
+                except Exception as e:
+                    st.error(f"Payment failed. Database connection error. ({e})")
             else:
                 st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
         else:
