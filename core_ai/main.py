@@ -268,7 +268,7 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "qr"
                     st.rerun()
 
-            # --- STAGE 2: CENTERED QR ---
+           # --- STAGE 2: CENTERED QR ---
             elif st.session_state.payment_stage == "qr":
                 st.markdown(f"""
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
@@ -282,24 +282,11 @@ if st.session_state.show_payment:
                     with st.spinner("Finalizing receipt..."):
                         # Update Supabase status to Vacant
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                        st.session_state.payment_stage = "success"
                         st.balloons()
-                        st.markdown(f"""
-                            <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
-                                <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
-                                <hr>
-                                <p style='font-size: 18px;'><b>Status:</b> Paid</p>
-                                <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
-                                <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
-                            </div>
-                        """, unsafe_allow_html=True)
-                
-                        if st.button("DONE", type="primary", use_container_width=True):
-                        # Reset everything and go back to dashboard
-                            st.session_state.show_payment = False
-                            st.session_state.payment_stage = "summary"
-                            st.session_state.confirmed_slot = None
-                            st.rerun()
-        
+                        st.rerun()
+        else:
+            st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
         st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
 
