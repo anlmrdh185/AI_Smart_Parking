@@ -282,7 +282,6 @@ if st.session_state.show_payment:
                     with st.spinner("Finalizing receipt..."):
                         # Update Supabase status to Vacant
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                        st.session_state.payment_stage = "success"
                         st.balloons()
                         st.markdown(f"""
                             <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
