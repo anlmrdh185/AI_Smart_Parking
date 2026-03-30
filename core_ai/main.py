@@ -268,44 +268,54 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "qr"
                     st.rerun()
 
-            # --- STAGE 2: CENTERED QR ---
+            # --- COMBINED QR & SUCCESS ACTION ---
             elif st.session_state.payment_stage == "qr":
-                st.markdown(f"""
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                        <h3 style="color: #1e293b;">Scan to Pay RM {fee:.2f}</h3>
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-{entered_slot}" style="border: 5px solid #3b82f6; border-radius: 10px;">
-                        <p style="margin-top: 15px; color: #64748b;">Scan with your banking app</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    with st.spinner("Finalizing receipt..."):
-                        # Update Supabase status to Vacant
-                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                        st.session_state.payment_stage = "success"
-                        st.rerun()
+                # We use a placeholder to switch content dynamically
+                payment_container = st.empty()
 
-            # --- STAGE 3: DIRECT ACTION RECEIPT ---
-            elif st.session_state.payment_stage == "success":
-                st.success(f"✅ Payment Successful for {entered_slot}!")
-                st.balloons()
-                
-                # The "Action" content you requested
-                st.markdown(f"""
-                    <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
-                        <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
-                        <hr>
-                        <p style='font-size: 18px;'><b>Status:</b> Paid</p>
-                        <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
-                        <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("Finish & Return to Home", use_container_width=True):
-                    # Reset all states for the next user
-                    st.session_state.show_payment = False
+                with payment_container.container():
+                    st.markdown(f"""
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <h3 style="color: #1e293b; margin-bottom: 10px;">Scan to Pay RM {fee:.2f}</h3>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-{entered_slot}" 
+                            style="border: 5px solid #3b82f6; border-radius: 12px; margin-bottom: 20px;">
+                            <p style="color: #64748b;">Please scan the DuitNow QR above to complete transaction</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+        
+                    if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
+                        # 1. Update Database
+                        with st.spinner("Verifying Payment..."):
+                            supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                            time.sleep(1.5) # Short delay for "realism"
+            
+                        # 2. Clear the QR and show the Receipt immediately
+                        payment_container.empty()
+                        st.balloons()
+                        st.success(f"✅ Payment Successful for {entered_slot}!")
+            
+                        st.markdown(f"""
+                            <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e; margin-top: 10px;'>
+                                <h2 style='color: #166534; margin-top: 0; display: flex; align-items: center; gap: 10px;'>
+                                🎫 Exit Pass
+                                </h2>
+                                <hr style='border: 0.5px solid #bbf7d0;'>
+                                <p style='font-size: 18px; margin-bottom: 10px;'><b>Status:</b> <span style='color: #166534;'>PAID</span></p>
+                                <p style='font-size: 18px; margin-bottom: 10px;'><b>Action:</b> The barrier will open. You may now exit the wing.</p>
+                                <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes remaining</p>
+                            </div>
+                            <br>
+                        """, unsafe_allow_html=True)
+            
+                        if st.button("Done & Return to Dashboard", use_container_width=True):
+                            st.session_state.show_payment = False
+                            st.session_state.payment_stage = "summary"
+                            if 'confirmed_slot' in st.session_state:
+                                del st.session_state.confirmed_slot
+                            st.rerun()
+
+                if st.button("⬅️ Cancel Payment"):
                     st.session_state.payment_stage = "summary"
-                    del st.session_state.confirmed_slot
                     st.rerun()
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
