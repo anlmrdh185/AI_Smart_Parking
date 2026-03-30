@@ -8,43 +8,6 @@ from supabase import create_client, Client
 # --- 1. PAGE CONFIGURATION & CSS ---
 st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_icon="🅿️")
 st.markdown("""
-
-    # --- INSERT AFTER CSS BLOCK ---
-
-# 1. Initialize the selection in session state so it remembers the choice
-if 'selected_place' not in st.session_state:
-    st.session_state.selected_place = None
-
-# 2. Hero Selection Page
-if st.session_state.selected_place is None:
-    st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to AI Smart Parking</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Please select a facility to view live availability.</p>", unsafe_allow_html=True)
-    
-    # Selection box
-    place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose a location...")
-    
-    if st.button("Enter Dashboard", type="primary"):
-        if place:
-            st.session_state.selected_place = place
-            st.rerun()
-        else:
-            st.error("Please select a location first.")
-    st.stop() # IMPORTANT: This stops the code below from running until a place is picked
-
-# 3. Handle the "No Data" for Mosque
-if st.session_state.selected_place == "USM Mosque":
-    st.header("📍 USM Mosque")
-    st.warning("Data currently unavailable.")
-    st.info("The AI Parking Detection module for USM Mosque is currently in the 'Requirements and Planning' phase.")
-    
-    if st.button("⬅️ Back to Selection"):
-        st.session_state.selected_place = None
-        st.rerun()
-    st.stop() # Stops here so Queensbay code doesn't execute
-
-# 4. If code reaches here, it means Queensbay was picked
-# --- YOUR EXISTING QUEENSBAY CODE STARTS HERE ---
-
     <style>
     /* ADDED: Main Header & Logo Styling */
     .main-header {
