@@ -37,13 +37,15 @@ st.markdown("""
         line-height: 1;
     }
 
-    /* ADDED: Box styling for metrics */
-    div[data-testid="stMetric"] {
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
-        padding: 15px 20px;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    .metric-container { 
+        background-color: #ffffff; 
+        border: 1px solid #cbd5e1; /* Adds the box border */
+        padding: 15px 20px; 
+        border-radius: 12px; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
     }
     <style>
     .stApp { background-color: #f8fafc; }
@@ -145,6 +147,19 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "🔍 Parking Monitoring":
+
+    # --- ADD THIS NEW HEADER BLOCK HERE ---
+    st.markdown("""
+        <div class="main-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" width="60" style="margin-right: 20px;">
+            <div>
+                <h1 style="margin: 0; color: #1e293b; font-size: 32px;">AI Smart Parking Admin</h1>
+                <p style="margin: 0; color: #64748b; font-size: 16px;">Live Facility Monitoring</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    # --------------------------------------
+    
     df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
