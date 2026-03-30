@@ -241,73 +241,48 @@ with left_panel:
         st.warning("No data found in Supabase.")
 
 # --- 6. RIGHT PANEL: DATA-DRIVEN PREDICTION UI ---
-# --- 6. RIGHT PANEL: DATA-DRIVEN PREDICTION UI ---
+# --- 6. RIGHT PANEL: CUSTOM PREDICTION UI ---
 with right_panel:
     st.markdown("#### 📈 Occupancy Prediction")
     
-    # Fetch historical data for predictions
-    df_history = get_cloud_data("transactions")
-    
-    # 1. Dynamic Next Hour Forecast Logic
+    # Logic for the dynamic Next Hour Forecast
     forecast = min(100, occupancy_rate + 5)
     if forecast < 50:
-        badge_class, badge_text, sub_text = "badge-low", "Low", "Off-peak hours"
+        badge_class = "badge-low"
+        badge_text = "Low"
+        sub_text = "Off-peak hours"
     elif forecast < 80:
-        badge_class, badge_text, sub_text = "badge-med", "Medium", "Steady traffic"
+        badge_class = "badge-med"
+        badge_text = "Medium"
+        sub_text = "Steady traffic"
     else:
-        badge_class, badge_text, sub_text = "badge-high", "High", "Peak hours approaching"
+        badge_class = "badge-high"
+        badge_text = "High"
+        sub_text = "Peak hours approaching"
 
+    # FLATTENED HTML to prevent Streamlit from making it a code block
     pred_html = f"<div class='pred-card-blue'><div class='pred-header'><span>Current Occupancy</span><span class='pred-header-val'>{occupancy_rate}%</span></div><div class='progress-track'><div class='progress-fill-blue' style='width: {occupancy_rate}%;'></div></div></div>"
+    
     pred_html += f"<div class='pred-card-purple'><div class='pred-header'><span>🕒 Next Hour Forecast</span><span class='forecast-val'>{forecast}%</span></div><span class='{badge_class}'>{badge_text}</span><div class='sub-text'>{sub_text}</div></div>"
     
-    # 2. DATA-DRIVEN ANALYTICS
-    if not df_history.empty:
-        # Convert times to pandas datetime
-        df_history['entry_time'] = pd.to_datetime(df_history['entry_time'])
-        df_history['hour'] = df_history['entry_time'].dt.hour
+    pred_html += "<div style='font-size: 13px; color: #059669; margin-bottom: 8px;'>① Best Times to Visit</div>"
+    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Early Morning</span><span>6 AM - 8 AM</span></div>"
+    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Late Evening</span><span>9 PM - 11 PM</span></div>"
+    
+    pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast</div>"
+    
+    # Mock data for the bar chart
+    forecast_data = [
+        ("8 AM", 75, "fill-orange"), ("10 AM", 82, "fill-orange"),
+        ("12 PM", 95, "fill-red"), ("2 PM", 88, "fill-red"),
+        ("4 PM", 78, "fill-orange"), ("6 PM", 90, "fill-red"),
+        ("8 PM", 65, "fill-yellow"), ("10 PM", 45, "fill-green")
+    ]
+    
+    # FLATTENED Loop
+    for time_label, val, color_class in forecast_data:
+        pred_html += f"<div class='bar-chart-row'><div class='bar-chart-time'>{time_label}</div><div class='bar-chart-track'><div class='bar-chart-fill {color_class}' style='width: {val}%;'></div></div><div class='bar-chart-val'>{val}%</div></div>"
         
-        # Count how many cars park during each hour historically
-        hourly_traffic = df_history.groupby('hour').size()
-        max_traffic = hourly_traffic.max() if not hourly_traffic.empty else 1
-        
-        # Find the two quietest hours (Best times to visit) between 6 AM and 10 PM
-        day_hours = hourly_traffic[(hourly_traffic.index >= 6) & (hourly_traffic.index <= 22)]
-        if not day_hours.empty:
-            quietest_hours = day_hours.nsmallest(2).index.tolist()
-        else:
-            quietest_hours = [7, 21] # Fallback
-            
-        def format_hour(h):
-            am_pm = "AM" if h < 12 else "PM"
-            disp_h = h if h <= 12 else h - 12
-            if disp_h == 0: disp_h = 12
-            return f"{disp_h} {am_pm}"
-
-        pred_html += "<div style='font-size: 13px; color: #059669; margin-bottom: 8px;'>① Best Times to Visit (Based on Data)</div>"
-        
-        for qh in quietest_hours:
-            pred_html += f"<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Recommended</span><span>{format_hour(qh)} - {format_hour(qh+2)}</span></div>"
-        
-        pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast (Historical Average)</div>"
-        
-        # Generate the bar chart for specific display hours
-        display_hours = [8, 10, 12, 14, 16, 18, 20, 22]
-        for h in display_hours:
-            count = hourly_traffic.get(h, 0)
-            # Normalize to a percentage (0-100%)
-            percentage = int((count / max_traffic) * 100) if max_traffic > 0 else 0
-            
-            # Determine color dynamically
-            if percentage >= 80: color_class = "fill-red"
-            elif percentage >= 60: color_class = "fill-orange"
-            elif percentage >= 40: color_class = "fill-yellow"
-            else: color_class = "fill-green"
-            
-            pred_html += f"<div class='bar-chart-row'><div class='bar-chart-time'>{format_hour(h)}</div><div class='bar-chart-track'><div class='bar-chart-fill {color_class}' style='width: {percentage}%;'></div></div><div class='bar-chart-val'>{percentage}%</div></div>"
-
-    else:
-        pred_html += "<div style='font-size: 12px; color: red;'>No historical data available for forecast yet.</div>"
-
     st.markdown(pred_html, unsafe_allow_html=True)
 
 time.sleep(3)
