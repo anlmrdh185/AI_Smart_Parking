@@ -294,13 +294,6 @@ if st.session_state.show_payment:
                             </div>
                         """, unsafe_allow_html=True)
 
-                        if st.button("Finish & Return to Home", use_container_width=True):
-                            # Reset all states for the next user
-                            st.session_state.show_payment = False
-                            st.session_state.payment_stage = "summary"
-                            del st.session_state.confirmed_slot
-                            st.rerun()
-
         
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
