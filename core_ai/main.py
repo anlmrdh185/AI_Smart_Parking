@@ -304,7 +304,7 @@ if st.session_state.show_payment:
                 st.markdown(payment_html, unsafe_allow_html=True)
                 
                 # --- STAGE 2: MOCK QR CODE ---
-            elif st.session_state.payment_stage == "qr":
+        elif st.session_state.payment_stage == "qr":
                 st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
                 st.subheader("Scan to Pay")
                 # Using a placeholder QR for the demo
