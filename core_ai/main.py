@@ -262,11 +262,11 @@ if st.session_state.show_payment:
                     </div>
                 </div>
                 """
-                st.markdown(payment_html, unsafe_allow_html=True)
-                if st.session_state.payment_stage == "summary":
-                    if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
-                        st.session_state.payment_stage = "qr"
-                        st.rerun()
+            st.markdown(payment_html, unsafe_allow_html=True)
+            if st.session_state.payment_stage == "summary":
+                if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
+                    st.session_state.payment_stage = "qr"
+                    st.rerun()
 
             # --- STAGE 2: CENTERED QR ---
             elif st.session_state.payment_stage == "qr":
