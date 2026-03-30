@@ -7,76 +7,81 @@ from supabase import create_client, Client
 
 # --- 1. PAGE CONFIGURATION & CSS ---
 st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_icon="🅿️")
-
 st.markdown("""
     <style>
-    div[data-testid="metric-container"] {
-        background-color: #ffffff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+    /* ADDED: Main Header & Logo Styling */
+    .main-header {
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #3b82f6;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
-    .parking-map-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
     
-    /* GATES STYLING */
+    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    .logo-box {
+        width: 60px;
+        height: 60px;
+        background-color: #3b82f6; /* Blue background */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        color: white;
+        font-size: 40px; /* Large built-in icon */
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    /* ADDED: Box styling for metrics */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* ADDED: Button Box to match Metric Height */
+    .button-box {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 12px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Original CSS preserved */
+    .parking-map-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
     .gate-header { width: 95%; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: flex-end; }
     .gate-group { display: flex; align-items: center; gap: 5px; }
     .gate-label { border: 1px solid #000; padding: 4px 10px; font-size: 12px; background: #fff; color: #000; font-weight: bold; }
     .gate-arrow { font-size: 26px; color: #0f4c75; line-height: 1; margin-bottom: -2px; }
-
-    /* PARKING GRID STYLING */
     .parking-row { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
     .road-boundary { width: 95%; height: 14px; background-color: #0f4c75; margin: 12px 0; border-radius: 2px; }
-    .slot { 
-        width: 40px; height: 40px; border-radius: 6px; display: flex; flex-direction: column; 
-        align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-    }
+    .slot { width: 40px; height: 40px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
     .slot.vacant { background-color: #10b981; }   
     .slot.occupied { background-color: #ef4444; } 
     .slot.oku-vacant { background-color: #38bdf8; } 
     .slot.yellow { background-color: #fbbf24; box-shadow: none; } 
-    .slot.gap { background-color: transparent; box-shadow: none; width: 12px; } 
     .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; } 
     .slot-id { font-size: 11px; line-height: 1; } 
-    
-    /* --- NEW PREDICTION CENTER STYLING --- */
     .pred-card-blue { background-color: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dbeafe; }
     .pred-card-purple { background-color: #faf5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f3e8ff; }
-    .pred-header { display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 8px; }
-    .pred-header-val { font-weight: bold; color: #1e293b; font-size: 14px; }
-    
-    /* Progress Bars */
     .progress-track { width: 100%; background-color: #ffffff; border-radius: 4px; height: 8px; overflow: hidden; border: 1px solid #e2e8f0;}
     .progress-fill-blue { background-color: #2563eb; height: 100%; border-radius: 4px; }
-    
-    /* --- NEW PAYMENT CARD STYLING --- */
-    .payment-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-    .payment-header { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1e293b; text-align: center; letter-spacing: -0.5px;}
-    .payment-divider { height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 15px 0; }
-    .payment-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #64748b; align-items: center;}
-    .payment-val { font-weight: 700; color: #1e293b; font-size: 16px; }
-    .demo-badge { background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;}
-    .payment-total-row { margin-top: 25px; background-color: #f8fafc; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 2px solid #8b5cf6;}
-    .payment-total-label { font-size: 18px; font-weight: bold; color: #475569; }
-    .payment-total-amount { font-size: 32px; font-weight: 900; color: #8b5cf6; line-height: 1;}
-    
-    /* Badges & Text */
-    .badge-low { background-color: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
-    .badge-high { background-color: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
-    .badge-med { background-color: #fef9c3; color: #854d0e; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
-    .forecast-val { font-size: 16px; font-weight: bold; color: #7e22ce; }
-    .sub-text { font-size: 11px; color: #64748b; margin-top: 8px; }
-    
-    /* Best Times Pills */
     .time-pill { background-color: #ecfdf5; color: #059669; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
-    
-    /* Chart Rows */
     .bar-chart-row { display: flex; align-items: center; font-size: 11px; margin-bottom: 8px; color: #475569;}
-    .bar-chart-time { width: 40px; font-weight: 500;}
     .bar-chart-track { flex-grow: 1; background-color: #f1f5f9; height: 6px; border-radius: 3px; margin: 0 10px; overflow: hidden; }
     .bar-chart-fill { height: 100%; border-radius: 3px; }
-    .bar-chart-val { width: 30px; text-align: right; }
-    .fill-red { background-color: #ef4444; }
-    .fill-orange { background-color: #f97316; }
-    .fill-yellow { background-color: #eab308; }
-    .fill-green { background-color: #10b981; }
+    .fill-red { background-color: #ef4444; } .fill-orange { background-color: #f97316; } .fill-yellow { background-color: #eab308; } .fill-green { background-color: #10b981; }
     </style>
     """, unsafe_allow_html=True)
 
