@@ -9,6 +9,55 @@ from supabase import create_client, Client
 st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_icon="🅿️")
 st.markdown("""
     <style>
+    /* ADDED: Main Header & Logo Styling */
+    .main-header {
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #3b82f6;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    .logo-box {
+        width: 60px;
+        height: 60px;
+        background-color: #3b82f6; /* Blue background */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        color: white;
+        font-size: 40px; /* Large built-in icon */
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    /* ADDED: Box styling for metrics */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* ADDED: Button Box to match Metric Height */
+    .button-box {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 12px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    <style>
     div[data-testid="metric-container"] {
         background-color: #ffffff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     }
