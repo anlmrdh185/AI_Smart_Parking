@@ -72,7 +72,18 @@ def toggle_payment():
     st.session_state.show_payment = not st.session_state.show_payment
 
 # --- 3. TOP ROW: METRICS & PAYMENT BUTTON ---
-st.markdown("### 🚗 Facility Overview")
+# --- NEW HEADER SECTION ---
+st.markdown("""
+    <div class="main-header">
+        <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
+        <div class="header-text">
+            <h1>AI Smart Parking Dashboard</h1>
+            <p style="margin:0; color:#64748b;">Live Facility Management & Predictions</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- UPDATED METRICS SECTION ---
 if not df_slots.empty:
     total_spaces = len(df_slots)
     occupied_spaces = len(df_slots[df_slots['status'] == 'Occupied'])
@@ -82,14 +93,15 @@ else:
     total_spaces, available_spaces, occupancy_rate = 0, 0, 0
 
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+
+# The CSS above will automatically apply borders to these boxes
 col1.metric("📍 Total Spaces", total_spaces)
 col2.metric("🟢 Available", available_spaces)
 col3.metric("📈 Occupancy Rate", f"{occupancy_rate}%")
-with col4:
-    st.write("<br>", unsafe_allow_html=True) # Spacing alignment
-    st.button("💳 Quick Action: Pay Now", type="primary", use_container_width=True, on_click=toggle_payment)
 
-st.markdown("---")
+with col4:
+    st.write("<br>", unsafe_allow_html=True) 
+    st.button("💳 Pay Now", type="primary", use_container_width=True, on_click=toggle_payment)
 
 # --- 4. CONDITIONAL PAYMENT PORTAL ---
 if st.session_state.show_payment:
