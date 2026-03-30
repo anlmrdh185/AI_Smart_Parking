@@ -302,8 +302,7 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "summary"
                     st.rerun()
                             
-                except Exception as e:
-                    st.error(f"Payment failed. Database connection error. ({e})")
+                
             else:
                 st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
         else:
