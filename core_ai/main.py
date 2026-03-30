@@ -8,42 +8,37 @@ from supabase import create_client, Client
 st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_icon="🅿️")
 
 # Custom CSS to mimic the modern UI in your design
-# Updated CSS for both files
 st.markdown("""
     <style>
-    /* 1. Main Header with Logo */
-    .main-header {
-        display: flex;
-        align-items: center;
+    /* Styling for the top metric cards */
+    div[data-testid="metric-container"] {
         background-color: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        border: 2px solid #8b5cf6; /* Purple border */
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     }
-    .logo-img {
-        width: 60px;
-        margin-right: 20px;
+    /* Styling for the parking grid */
+    .parking-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; align-items: center;}
+    .slot { 
+        width: 50px; height: 50px; border-radius: 8px; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        font-weight: bold; color: white; font-size: 14px; box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
     }
-    .header-text h1 {
-        margin: 0;
-        color: #1e293b;
-        font-size: 28px;
+    .slot.occupied { background-color: #ef4444; } /* Red */
+    .slot.vacant { background-color: #10b981; }   /* Green */
+    .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; }
+    .slot-id { font-size: 10px; line-height: 1; }
+    
+    /* Styling for the IN/OUT Gates */
+    .gate {
+        background-color: #3b82f6; color: white; padding: 10px 15px; 
+        border-radius: 8px; font-weight: bold; font-size: 12px;
+        display: flex; align-items: center; justify-content: center; text-align: center;
     }
     
-    /* 2. Structured Metric Boxes */
-    [data-testid="stMetric"] {
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0; /* Soft gray border */
-        padding: 15px 20px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stMetric"]:hover {
-        border-color: #8b5cf6;
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
-    }
+    /* Styling for right panel cards */
+    .forecast-card { background-color: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e0e0e0;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -72,18 +67,7 @@ def toggle_payment():
     st.session_state.show_payment = not st.session_state.show_payment
 
 # --- 3. TOP ROW: METRICS & PAYMENT BUTTON ---
-# --- NEW HEADER SECTION ---
-st.markdown("""
-    <div class="main-header">
-        <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
-        <div class="header-text">
-            <h1>AI Smart Parking Dashboard</h1>
-            <p style="margin:0; color:#64748b;">Live Facility Management & Predictions</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- UPDATED METRICS SECTION ---
+st.markdown("### 🚗 Facility Overview")
 if not df_slots.empty:
     total_spaces = len(df_slots)
     occupied_spaces = len(df_slots[df_slots['status'] == 'Occupied'])
@@ -93,15 +77,14 @@ else:
     total_spaces, available_spaces, occupancy_rate = 0, 0, 0
 
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-
-# The CSS above will automatically apply borders to these boxes
 col1.metric("📍 Total Spaces", total_spaces)
 col2.metric("🟢 Available", available_spaces)
 col3.metric("📈 Occupancy Rate", f"{occupancy_rate}%")
-
 with col4:
-    st.write("<br>", unsafe_allow_html=True) 
-    st.button("💳 Pay Now", type="primary", use_container_width=True, on_click=toggle_payment)
+    st.write("<br>", unsafe_allow_html=True) # Spacing alignment
+    st.button("💳 Quick Action: Pay Now", type="primary", use_container_width=True, on_click=toggle_payment)
+
+st.markdown("---")
 
 # --- 4. CONDITIONAL PAYMENT PORTAL ---
 if st.session_state.show_payment:
