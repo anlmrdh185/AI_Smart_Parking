@@ -240,7 +240,6 @@ if st.session_state.show_payment:
             stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
             # --- PAYMENT STAGES (FIXED INDENTATION) ---
-            if st.session_state.payment_stage == "summary":
                 payment_html = f"""
                 <div class='payment-card'>
                     <div class='payment-header'>🅿️ Parking Fee Summary</div>
@@ -264,9 +263,10 @@ if st.session_state.show_payment:
                 </div>
                 """
                 st.markdown(payment_html, unsafe_allow_html=True)
-                if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
-                    st.session_state.payment_stage = "qr"
-                    st.rerun()
+                if st.session_state.payment_stage == "summary":
+                    if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
+                        st.session_state.payment_stage = "qr"
+                        st.rerun()
 
             # --- STAGE 2: CENTERED QR ---
             elif st.session_state.payment_stage == "qr":
