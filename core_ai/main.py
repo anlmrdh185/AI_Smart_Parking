@@ -152,6 +152,39 @@ def get_cloud_data(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
 
+# --- INSERT AFTER CSS, BEFORE HEADER ---
+
+# 1. Initialize selection in session state if not exists
+if 'selected_place' not in st.session_state:
+    st.session_state.selected_place = None
+
+# 2. Hero Selection Page (This shows if no place is picked)
+if st.session_state.selected_place is None:
+    st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
+    
+    # Dropdown for locations
+    place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose location...")
+    
+    if st.button("Enter Dashboard", type="primary"):
+        if place:
+            st.session_state.selected_place = place
+            st.rerun()
+    st.stop() # Stops everything below from running until selection is made
+
+# 3. If place is USM Mosque, show "No Data" and stop
+if st.session_state.selected_place == "USM Mosque":
+    st.title("📍 USM Mosque")
+    st.info("System Status: Under Maintenance / Calibration")
+    st.warning("No live AI data is available for USM Mosque at this time. Please check back later.")
+    if st.button("⬅️ Back to Selection"):
+        st.session_state.selected_place = None
+        st.rerun()
+    st.stop() # Prevents Queensbay code from running
+
+# --- YOUR EXISTING QUEENSBAY CODE CONTINUES BELOW THIS ---
+# (The Header, Metrics, and Grid View you already built)
+
 df_slots = get_cloud_data("slots")
 
 if 'show_payment' not in st.session_state:
@@ -429,5 +462,5 @@ with right_panel:
         
     st.markdown(pred_html, unsafe_allow_html=True)
 
-time.sleep(240)
+time.sleep(3)
 st.rerun()
