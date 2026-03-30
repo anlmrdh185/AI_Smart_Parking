@@ -148,6 +148,15 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "🔍 Parking Monitoring":
+    st.markdown("""
+        <div class="admin-logo-header">
+            <div class="logo-box">🅿️</div>
+            <div class="header-text">
+                <h1 style="margin:0; color:#1e293b;">Admin Command Center</h1>
+                <p style="margin:0; color:#8b5cf6; font-weight:bold;">Secure Facility Monitoring</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
