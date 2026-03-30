@@ -9,7 +9,6 @@ st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="ð
 
 st.markdown("""
     <style>
-   <style>
     /* ADDED: Main Header & Logo Styling */
     .main-header {
         display: flex;
