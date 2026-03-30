@@ -108,6 +108,18 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "🔍 Parking Monitoring":
+
+    # --- ADMIN HEADER ---
+    st.markdown("""
+        <div class="main-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" class="logo-img">
+            <div class="header-text">
+                <h1>Admin Command Center</h1>
+                <p style="margin:0; color:#64748b;">Monitoring & System Controls</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
     df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
