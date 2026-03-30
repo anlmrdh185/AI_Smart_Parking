@@ -281,10 +281,10 @@ if st.session_state.show_payment:
 
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
                     with st.spinner("Finalizing receipt..."):
-                    supabase.table("slots").update({
-                        "status": "Vacant",
-                        "start_time": None
-                    }).eq("slot_id", entered_slot).execute()
+                        supabase.table("slots").update({
+                            "status": "Vacant",
+                            "start_time": None
+                        }).eq("slot_id", entered_slot).execute()
 
                     st.session_state.payment_stage = "success"
                     st.rerun()
