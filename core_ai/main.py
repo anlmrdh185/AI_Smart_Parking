@@ -108,6 +108,16 @@ def toggle_payment():
     st.session_state.show_payment = not st.session_state.show_payment
 
 # --- 3. TOP ROW: METRICS & PAYMENT ---
+st.markdown("""
+    <div class="main-header">
+        <div class="logo-box">🅿️</div>
+        <div class="header-text">
+            <h1 style="margin:0; color:#1e293b;">AI Smart Parking Dashboard</h1>
+            <p style="margin:0; color:#64748b;">Live User Portal & Payments</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.markdown("### 🚗 Facility Overview")
 if not df_slots.empty:
     total_spaces = len(df_slots)
@@ -273,7 +283,7 @@ with left_panel:
             <div class='gate-header'>
                 <div class='gate-group'>
                     <div class='gate-arrow'>⬅️</div>
-                    <div class='gate-label'>STORE & Enter</div>
+                    <div class='gate-label'>STORE & MALL</div>
                 </div>
                 <div class='gate-group'>
                     <div class='gate-label'>Exit</div>
