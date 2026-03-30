@@ -9,7 +9,7 @@ st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_
 
 st.markdown("""
     <style>
-    /* Header & Logo Styling */
+    /* ADDED: Main Header & Logo Styling */
     .main-header {
         display: flex;
         align-items: center;
@@ -20,9 +20,24 @@ st.markdown("""
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
-    .logo-img { width: 80px; margin-right: 20px; }
     
-    /* Box styling for metrics */
+    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    .logo-box {
+        width: 60px;
+        height: 60px;
+        background-color: #3b82f6; /* Blue background */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        color: white;
+        font-size: 40px; /* Large built-in icon */
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    /* ADDED: Box styling for metrics */
     div[data-testid="stMetric"] {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
@@ -31,7 +46,7 @@ st.markdown("""
         box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     }
 
-    /* Button Box to match Metric Height */
+    /* ADDED: Button Box to match Metric Height */
     .button-box {
         background-color: #ffffff;
         border: 2px solid #e2e8f0;
@@ -39,7 +54,7 @@ st.markdown("""
         border-radius: 12px;
         height: 100%;
         display: flex;
-        flex-direction: column;
+        align-items: center;
         justify-content: center;
     }
     
@@ -62,6 +77,11 @@ st.markdown("""
     .pred-card-purple { background-color: #faf5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f3e8ff; }
     .progress-track { width: 100%; background-color: #ffffff; border-radius: 4px; height: 8px; overflow: hidden; border: 1px solid #e2e8f0;}
     .progress-fill-blue { background-color: #2563eb; height: 100%; border-radius: 4px; }
+    .time-pill { background-color: #ecfdf5; color: #059669; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+    .bar-chart-row { display: flex; align-items: center; font-size: 11px; margin-bottom: 8px; color: #475569;}
+    .bar-chart-track { flex-grow: 1; background-color: #f1f5f9; height: 6px; border-radius: 3px; margin: 0 10px; overflow: hidden; }
+    .bar-chart-fill { height: 100%; border-radius: 3px; }
+    .fill-red { background-color: #ef4444; } .fill-orange { background-color: #f97316; } .fill-yellow { background-color: #eab308; } .fill-green { background-color: #10b981; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -88,9 +108,9 @@ def toggle_payment():
     st.session_state.show_payment = not st.session_state.show_payment
 
 # --- 3. TOP ROW: METRICS & PAYMENT ---
-st.markdown(f"""
+st.markdown("""
     <div class="main-header">
-        <img src="https://files.oaiusercontent.com/file-6e17fc" class="logo-img">
+        <div class="logo-box">🅿️</div>
         <div class="header-text">
             <h1 style="margin:0; color:#1e293b;">AI Smart Parking Dashboard</h1>
             <p style="margin:0; color:#64748b;">Live User Portal & Payments</p>
