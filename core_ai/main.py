@@ -201,60 +201,43 @@ if st.session_state.show_payment:
     if entered_slot and entered_slot in df_slots['slot_id'].values:
         row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
 
-            # 3. Check if the car is actually parked there
+        # 3. Check if the car is actually parked there
         if row['status'] == 'Occupied':
-    
-                # Calculate Duration
-                try:
-                    entry_time_str = row['start_time'].replace('T', ' ').split('.')[0]
-                    entry_time_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-                except:
-                    entry_time_dt = datetime.now() # Failsafe
-                    
-                duration = datetime.now() - entry_time_dt
-                seconds_parked = duration.seconds
+            # --- DYNAMIC FEE CALCULATION ---
+            try:
+                entry_time_str = row['start_time'].replace('T', ' ').split('.')[0]
+                entry_time_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+            except:
+                entry_time_dt = datetime.now()
                 
-                # --- NEW MATH: Calculate in blocks of 10 seconds ---
-                blocks_of_10s = seconds_parked // 10
+            duration = datetime.now() - entry_time_dt
+            seconds_parked = duration.seconds
+            blocks_of_10s = seconds_parked // 10
+            
+            try:
+                settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
+                if settings_res.data:
+                    base_fee = float(settings_res.data[0]['base_fee'])
+                    rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
+                else:
+                    base_fee, rate_per_10_sec = 2.00, 0.10
+            except:
+                base_fee, rate_per_10_sec = 2.00, 0.10
                 
-                # --- FETCH LIVE FEES FROM CLOUD DB ---
-                try:
-                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
-                    if settings_res.data:
-                        base_fee = float(settings_res.data[0]['base_fee'])
-                        # We will treat the database value as the rate per 10 seconds now
-                        rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
-                    else:
-                        base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
-                except:
-                    base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
-                    
-                # Multiply the rate by the number of 10-second blocks
-                fee = base_fee + (blocks_of_10s * rate_per_10_sec)
-                
-                # --- CREATE A STABLE TICKET ID ---
-                stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
+            fee = base_fee + (blocks_of_10s * rate_per_10_sec)
+            stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
-                # --- PAYMENT RECEIPT UI ---
-                if st.session_state.payment_stage == "summary":
-                    payment_html = f"""
-                    <div class='payment-card'>
-                        <div class='payment-header'>🅿️ Parking Fee Summary</div>
-                        <div class='payment-row'>
-                            <span>Ticket ID</span>
-                            <span class='payment-val'>#{stable_ticket_id}</span>
-                    </div>
+            # --- PAYMENT STAGES (FIXED INDENTATION) ---
+            if st.session_state.payment_stage == "summary":
+                payment_html = f"""
+                <div class='payment-card'>
+                    <div class='payment-header'>🅿️ Parking Fee Summary</div>
+                    <div class='payment-row'><span>Ticket ID</span><span class='payment-val'>#{stable_ticket_id}</span></div>
                     <div class='payment-divider'></div>
-                    <div class='payment-row'>
-                        <span>Slot Location</span>
-                        <span class='payment-val' style='font-size: 20px;'>{entered_slot}</span>
-                    </div>
-                    <div class='payment-row'>
-                        <span>Entry Time</span>
-                        <span class='payment-val'>{entry_time_dt.strftime('%I:%M:%S %p')}</span>
-                    </div>
-                     <div class='payment-divider'></div>
-                     <div class='payment-row' style='background:#fff1f2; padding: 5px;'>
+                    <div class='payment-row'><span>Slot Location</span><span class='payment-val' style='font-size: 20px;'>{entered_slot}</span></div>
+                    <div class='payment-row'><span>Entry Time</span><span class='payment-val'>{entry_time_dt.strftime('%I:%M:%S %p')}</span></div>
+                    <div class='payment-divider'></div>
+                    <div class='payment-row' style='background:#fff1f2; padding: 5px;'>
                         <span><span class='demo-badge'>FYP DEMO</span> Duration</span>
                         <span class='payment-val' style='color:#be123c;'>{seconds_parked} Seconds</span>
                     </div>
@@ -269,21 +252,20 @@ if st.session_state.show_payment:
                 </div>
                 """
                 st.markdown(payment_html, unsafe_allow_html=True)
-                
                 if st.button("💳 Proceed to QR Payment", type="primary", use_container_width=True):
                     st.session_state.payment_stage = "qr"
                     st.rerun()
-                
-            # --- STAGE 2: MOCK QR CODE ---
+
             elif st.session_state.payment_stage == "qr":
                 st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
                 st.subheader("Scan to Pay")
-                # Using a placeholder QR for the demo
-                st.image("https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MockPayment", width=250)
+                # Using dynamic fee in the QR data
+                qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Pay_RM_{fee:.2f}"
+                st.image(qr_url, width=250)
                 st.info(f"Please scan the QR above to complete payment of **RM {fee:.2f}**")
                 
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    with st.spinner("Verifying transaction..."): # Mock verification
+                    with st.spinner("Verifying transaction..."):
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                         st.session_state.payment_stage = "success"
                         st.rerun()
@@ -292,7 +274,6 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "summary"
                     st.rerun()
 
-            # --- STAGE 3: SUCCESS ---
             elif st.session_state.payment_stage == "success":
                 st.success(f"✅ Payment Successful for {entered_slot}!")
                 st.balloons()
@@ -301,11 +282,10 @@ if st.session_state.show_payment:
                     st.session_state.show_payment = False
                     st.session_state.payment_stage = "summary"
                     st.rerun()
-                            
-            else:
-                st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
         else:
-            st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
+            st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
+    elif entered_slot:
+        st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
 
     st.markdown("---")
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
