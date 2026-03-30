@@ -196,17 +196,17 @@ if st.session_state.show_payment:
     st.markdown("---")
     st.info("💳 **Secure Payment Portal**")
     
-    # Step 1: Single Entry for Slot ID
-    # We use session_state to "lock" the ID once entered so it doesn't ask again
+    # Initialize confirmed slot and state
     if 'confirmed_slot' not in st.session_state:
         st.session_state.confirmed_slot = None
 
+    # Step 1: Input Slot ID
     if st.session_state.payment_stage == "summary":
         entered_slot = st.text_input("Enter Your Parking Slot ID:", placeholder="e.g. W1-05").strip().upper()
         if entered_slot:
             st.session_state.confirmed_slot = entered_slot
     else:
-        # Displays the slot ID as a header in Step 2 and 3 so user knows which one they are paying for
+        # Keep the slot ID visible in subsequent steps
         st.markdown(f"### 🅿️ Slot: {st.session_state.confirmed_slot}")
         entered_slot = st.session_state.confirmed_slot
 
@@ -282,18 +282,28 @@ if st.session_state.show_payment:
                     with st.spinner("Finalizing receipt..."):
                         # Update Supabase status to Vacant
                         supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
-                        st.balloons()
+                        st.session_state.payment_stage = "success"
+                        st.rerun()
 
-                        st.markdown(f"""
-                            <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
-                                <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
-                                <hr>
-                                <p style='font-size: 18px;'><b>Status:</b> Paid</p>
-                                <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
-                                <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
-                            </div>
-                        """, unsafe_allow_html=True)
-
+            # --- STAGE 3: GREEN RECEIPT (Action) ---
+            elif st.session_state.payment_stage == "success":
+                st.balloons()
+                st.markdown(f"""
+                    <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
+                        <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
+                        <hr>
+                        <p style='font-size: 18px;'><b>Status:</b> Paid</p>
+                        <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
+                        <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button("DONE", type="primary", use_container_width=True):
+                    # Reset everything and go back to dashboard
+                    st.session_state.show_payment = False
+                    st.session_state.payment_stage = "summary"
+                    st.session_state.confirmed_slot = None
+                    st.rerun()
         
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
