@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import random
 import time
 from datetime import datetime
 from supabase import create_client, Client
@@ -9,79 +10,73 @@ st.set_page_config(page_title="AI Smart Parking Dashboard", layout="wide", page_
 
 st.markdown("""
     <style>
-    /* ADDED: Main Header & Logo Styling */
-    .main-header {
-        display: flex;
-        align-items: center;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        border: 2px solid #3b82f6;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    div[data-testid="metric-container"] {
+        background-color: #ffffff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     }
-    
-    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
-    .logo-box {
-        width: 60px;
-        height: 60px;
-        background-color: #3b82f6; /* Blue background */
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 20px;
-        color: white;
-        font-size: 40px; /* Large built-in icon */
-        font-weight: bold;
-        line-height: 1;
-    }
-
-    /* ADDED: Box styling for metrics */
-    div[data-testid="stMetric"] {
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-    }
-
-    /* ADDED: Button Box to match Metric Height */
-    .button-box {
-        background-color: #ffffff;
-        border: 2px solid #e2e8f0;
-        padding: 15px;
-        border-radius: 12px;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    /* Original CSS preserved */
     .parking-map-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+    
+    /* GATES STYLING */
     .gate-header { width: 95%; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: flex-end; }
     .gate-group { display: flex; align-items: center; gap: 5px; }
     .gate-label { border: 1px solid #000; padding: 4px 10px; font-size: 12px; background: #fff; color: #000; font-weight: bold; }
     .gate-arrow { font-size: 26px; color: #0f4c75; line-height: 1; margin-bottom: -2px; }
+
+    /* PARKING GRID STYLING */
     .parking-row { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
     .road-boundary { width: 95%; height: 14px; background-color: #0f4c75; margin: 12px 0; border-radius: 2px; }
-    .slot { width: 40px; height: 40px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+    .slot { 
+        width: 40px; height: 40px; border-radius: 6px; display: flex; flex-direction: column; 
+        align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
     .slot.vacant { background-color: #10b981; }   
     .slot.occupied { background-color: #ef4444; } 
     .slot.oku-vacant { background-color: #38bdf8; } 
     .slot.yellow { background-color: #fbbf24; box-shadow: none; } 
+    .slot.gap { background-color: transparent; box-shadow: none; width: 12px; } 
     .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; } 
     .slot-id { font-size: 11px; line-height: 1; } 
+    
+    /* --- NEW PREDICTION CENTER STYLING --- */
     .pred-card-blue { background-color: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #dbeafe; }
     .pred-card-purple { background-color: #faf5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f3e8ff; }
+    .pred-header { display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 8px; }
+    .pred-header-val { font-weight: bold; color: #1e293b; font-size: 14px; }
+    
+    /* Progress Bars */
     .progress-track { width: 100%; background-color: #ffffff; border-radius: 4px; height: 8px; overflow: hidden; border: 1px solid #e2e8f0;}
     .progress-fill-blue { background-color: #2563eb; height: 100%; border-radius: 4px; }
+    
+    /* --- NEW PAYMENT CARD STYLING --- */
+    .payment-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .payment-header { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #1e293b; text-align: center; letter-spacing: -0.5px;}
+    .payment-divider { height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 15px 0; }
+    .payment-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #64748b; align-items: center;}
+    .payment-val { font-weight: 700; color: #1e293b; font-size: 16px; }
+    .demo-badge { background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;}
+    .payment-total-row { margin-top: 25px; background-color: #f8fafc; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 2px solid #8b5cf6;}
+    .payment-total-label { font-size: 18px; font-weight: bold; color: #475569; }
+    .payment-total-amount { font-size: 32px; font-weight: 900; color: #8b5cf6; line-height: 1;}
+    
+    /* Badges & Text */
+    .badge-low { background-color: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .badge-high { background-color: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .badge-med { background-color: #fef9c3; color: #854d0e; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;}
+    .forecast-val { font-size: 16px; font-weight: bold; color: #7e22ce; }
+    .sub-text { font-size: 11px; color: #64748b; margin-top: 8px; }
+    
+    /* Best Times Pills */
     .time-pill { background-color: #ecfdf5; color: #059669; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+    
+    /* Chart Rows */
     .bar-chart-row { display: flex; align-items: center; font-size: 11px; margin-bottom: 8px; color: #475569;}
+    .bar-chart-time { width: 40px; font-weight: 500;}
     .bar-chart-track { flex-grow: 1; background-color: #f1f5f9; height: 6px; border-radius: 3px; margin: 0 10px; overflow: hidden; }
     .bar-chart-fill { height: 100%; border-radius: 3px; }
-    .fill-red { background-color: #ef4444; } .fill-orange { background-color: #f97316; } .fill-yellow { background-color: #eab308; } .fill-green { background-color: #10b981; }
+    .bar-chart-val { width: 30px; text-align: right; }
+    .fill-red { background-color: #ef4444; }
+    .fill-orange { background-color: #f97316; }
+    .fill-yellow { background-color: #eab308; }
+    .fill-green { background-color: #10b981; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -108,16 +103,6 @@ def toggle_payment():
     st.session_state.show_payment = not st.session_state.show_payment
 
 # --- 3. TOP ROW: METRICS & PAYMENT ---
-st.markdown("""
-    <div class="main-header">
-        <div class="logo-box">🅿️</div>
-        <div class="header-text">
-            <h1 style="margin:0; color:#1e293b;">AI Smart Parking Dashboard</h1>
-            <p style="margin:0; color:#64748b;">Live User Portal & Payments</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
 st.markdown("### 🚗 Facility Overview")
 if not df_slots.empty:
     total_spaces = len(df_slots)
@@ -138,29 +123,110 @@ with col4:
 st.markdown("---")
 
 if st.session_state.show_payment:
-    st.info("💳 **Payment Portal**")
-    if not df_slots.empty:
-        occupied_df = df_slots[df_slots['status'] == 'Occupied']
-        if occupied_df.empty:
-            st.write("No cars are currently parked.")
-        else:
-            pc1, pc2 = st.columns(2)
-            with pc1:
-                selected_slot = st.selectbox("Select your Slot ID:", occupied_df['slot_id'])
-            with pc2:
-                row = occupied_df[occupied_df['slot_id'] == selected_slot].iloc[0]
-                entry_time = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
-                duration = datetime.now() - entry_time
-                hours = max(1, duration.seconds // 3600)
-                fee = 2.00 + (max(0, hours - 1) * 1.00)
+    st.info("💳 **Secure Payment Portal**")
+    
+    # 1. User types in their Slot ID
+    entered_slot = st.text_input("Enter Your Parking Slot ID (e.g., W1-05):", placeholder="W1-05").strip().upper()
+    
+    if entered_slot:
+        # 2. Check if the slot exists in the database
+        if not df_slots.empty and entered_slot in df_slots['slot_id'].values:
+            row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
+            
+            # 3. Check if the car is actually parked there
+            if row['status'] == 'Occupied':
                 
-                st.write(f"**Parked Duration:** {hours} Hour(s)")
-                st.write(f"**Amount Due:** RM {fee:.2f}")
-                if st.button("Confirm Payment", type="primary"):
-                    st.success("Payment successful! Please exit within 15 minutes.")
-                    st.session_state.show_payment = False
-    st.markdown("---")
+                # Calculate Duration
+                try:
+                    entry_time_dt = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
+                except:
+                    entry_time_dt = datetime.now() # Failsafe
+                    
+                duration = datetime.now() - entry_time_dt
+                seconds_parked = duration.seconds
+                
+                # --- NEW MATH: Calculate in blocks of 10 seconds ---
+                blocks_of_10s = seconds_parked // 10
+                
+                # --- FETCH LIVE FEES FROM CLOUD DB ---
+                try:
+                    settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
+                    if settings_res.data:
+                        base_fee = float(settings_res.data[0]['base_fee'])
+                        # We will treat the database value as the rate per 10 seconds now
+                        rate_per_10_sec = float(settings_res.data[0]['rate_per_second']) 
+                    else:
+                        base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
+                except:
+                    base_fee, rate_per_10_sec = 2.00, 0.10 # Failsafe
+                    
+                # Multiply the rate by the number of 10-second blocks
+                fee = base_fee + (blocks_of_10s * rate_per_10_sec)
+                
+                # --- CREATE A STABLE TICKET ID ---
+                stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
+                # --- PAYMENT RECEIPT UI ---
+                payment_html = f"""
+                <div class='payment-card'>
+                    <div class='payment-header'>🅿️ Parking Fee Summary</div>
+                    <div class='payment-row'>
+                        <span>Ticket ID</span>
+                        <span class='payment-val'>#{stable_ticket_id}</span>
+                    </div>
+                     <div class='payment-divider'></div>
+                    <div class='payment-row'>
+                        <span>Slot Location</span>
+                        <span class='payment-val' style='font-size: 20px;'>{entered_slot}</span>
+                    </div>
+                    <div class='payment-row'>
+                        <span>Entry Time</span>
+                        <span class='payment-val'>{entry_time_dt.strftime('%I:%M:%S %p')}</span>
+                    </div>
+                     <div class='payment-divider'></div>
+                     <div class='payment-row' style='background:#fff1f2; padding: 5px;'>
+                        <span><span class='demo-badge'>FYP DEMO</span> Duration</span>
+                        <span class='payment-val' style='color:#be123c;'>{seconds_parked} Seconds</span>
+                    </div>
+                    <div class='payment-row'>
+                        <span>Applied Rate</span>
+                        <span class='payment-val'>Base RM{base_fee:.2f} + RM{rate_per_10_sec:.2f}/10s</span>
+                    </div>
+                    <div class='payment-total-row'>
+                        <span class='payment-total-label'>Total Due</span>
+                        <span class='payment-total-amount'>RM {fee:.2f}</span>
+                    </div>
+                </div>
+                """
+                st.markdown(payment_html, unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # --- PAYMENT CONFIRMATION BUTTON WITH 5-SECOND RESET TIMER ---
+                if st.button("💳 Confirm & Pay Now", type="primary", use_container_width=True):
+                    with st.spinner("Processing payment with gateway..."):
+                        time.sleep(120) # Simulate payment gateway delay
+                        
+                        try:
+                            # UPDATE SUPABASE: Change status back to Vacant
+                            supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+                            
+                            st.success("✅ Payment Successful! Thank you for parking with us.")
+                            st.info("🔄 You have 2 minutes to exit. The parking slot status will reset shortly...")
+                            
+                            # THE 2-MINUTE TIMER (120 seconds)
+                            time.sleep(5)
+                            
+                            st.session_state.show_payment = False
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"Payment failed. Database connection error. ({e})")
+            else:
+                st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
+        else:
+            st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
+
+    st.markdown("---")
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
 WING_LAYOUTS = {
     'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
@@ -240,7 +306,6 @@ with left_panel:
     else:
         st.warning("No data found in Supabase.")
 
-# --- 6. RIGHT PANEL: DATA-DRIVEN PREDICTION UI ---
 # --- 6. RIGHT PANEL: CUSTOM PREDICTION UI ---
 with right_panel:
     st.markdown("#### 📈 Occupancy Prediction")
