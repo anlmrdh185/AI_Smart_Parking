@@ -286,7 +286,18 @@ if menu_selection == "🔍 Parking Monitoring":
 # --- 6. PAGE: SETTINGS & MANAGEMENT ---
 elif menu_selection == "⚙️ Settings & Configuration":
     st.markdown("<div class='admin-header'><h2 style='margin:0;'>Settings & Configuration</h2><p style='margin:0; opacity: 0.8;'>Manage parking fees and facility layout information</p></div>", unsafe_allow_html=True)
-    
+    # ADD THIS PICKER HERE:
+    manage_place = st.selectbox("Select Facility to Configure", ["Queensbay Mall", "USM Mosque"])
+
+    if manage_place == "USM Mosque":
+        st.subheader(f"Settings for {manage_place}")
+        st.info("Configuration for USM Mosque is open, but AI detection is not yet linked.")
+        # Add basic fee inputs for Mosque here if you want
+        st.stop() # Stops the Queensbay settings from showing
+
+    # If Queensbay is selected (or default), show your current settings code:
+    # try:
+    #    settings_res = supabase.table("parking_fee")...
     try:
         settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
         current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
