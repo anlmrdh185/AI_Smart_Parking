@@ -206,7 +206,7 @@ if st.session_state.show_payment:
     
                 # Calculate Duration
                 try:
-                    entry_time_str = datetime.strptime(row['start_time'].replace('T', ' ').split('.')[0]
+                    entry_time_str = row['start_time'].replace('T', ' ').split('.')[0]
                     entry_time_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
                 except:
                     entry_time_dt = datetime.now() # Failsafe
