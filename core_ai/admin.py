@@ -9,6 +9,46 @@ st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="ð
 
 st.markdown("""
     <style>
+    /* ADDED: Admin Header & Logo Styling */
+    .admin-logo-header {
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 10px solid #8b5cf6;
+        border-top: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    .logo-box {
+        width: 60px;
+        height: 60px;
+        background-color: #3b82f6; /* Blue background to match design */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        color: white;
+        font-size: 40px; /* Large built-in icon */
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    /* ADDED: Box styling for metrics */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0;
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    <style>
     .stApp { background-color: #f8fafc; }
     .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #8b5cf6; }
     div[data-testid="metric-container"] { background-color: #ffffff; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
