@@ -155,7 +155,7 @@ if menu_selection == "🔍 Parking Monitoring":
         </div>
         """, unsafe_allow_html=True)
     
-    df_slots = get_cloud_data("slots")
+df_slots = get_cloud_data("slots")
     
     total = len(df_slots)
     occupied = len(df_slots[df_slots['status'] == 'Occupied']) if not df_slots.empty else 0
