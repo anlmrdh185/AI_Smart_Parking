@@ -272,18 +272,30 @@ if st.session_state.show_payment:
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
                     supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
                     st.session_state.payment_stage = "success"
-
-                    # --- STAGE 3: SUCCESS ---
-                    if st.session_state.payment_stage == "success":
-                        st.success("✅ Payment Successful!")
-                        st.balloons()
-                        if st.button("Back to Dashboard", use_container_width=True):
-                            st.session_state.show_payment = False
-                            st.session_state.payment_stage = "summary"
-                            st.rerun()
                     st.rerun()
                 
                 if st.button("⬅️ Cancel"):
+                    st.session_state.payment_stage = "summary"
+                    st.rerun()
+
+            # --- STAGE 3: SUCCESS ---
+            elif st.session_state.payment_stage == "success":
+                st.success(f"✅ Payment Successful for {entered_slot}!")
+                st.balloons()
+                
+                # ADD THIS BLOCK BACK:
+                st.markdown(f"""
+                    <div style='background-color: #f0fdf4; padding: 20px; border-radius: 10px; border: 1px solid #bbf7d0;'>
+                        <h3 style='color: #166534; margin-top: 0;'>Final Receipt</h3>
+                        <p style='margin-bottom: 5px;'><b>Status:</b> Paid</p>
+                        <p style='margin-bottom: 5px;'><b>Action:</b> You may now exit the parking lot.</p>
+                        <p style='margin-bottom: 0;'><b>Grace Period:</b> 15 Minutes</p>
+                    </div>
+                    <br>
+                """, unsafe_allow_html=True)
+                
+                if st.button("Finish & Return to Dashboard", use_container_width=True):
+                    st.session_state.show_payment = False
                     st.session_state.payment_stage = "summary"
                     st.rerun()
 
