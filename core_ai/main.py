@@ -280,7 +280,7 @@ if st.session_state.show_payment:
                         if st.button("Back to Dashboard", use_container_width=True):
                             st.session_state.show_payment = False
                             st.session_state.payment_stage = "summary"
-                            
+                            st.rerun()
                     st.rerun()
                 
                 if st.button("⬅️ Cancel"):
