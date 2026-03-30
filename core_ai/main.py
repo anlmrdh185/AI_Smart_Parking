@@ -332,7 +332,7 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "summary"
                     st.session_state.show_payment = False
                     st.session_state.confirmed_slot = None
-                    st.rerun()
+                    
         else:
             st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
     elif entered_slot:
