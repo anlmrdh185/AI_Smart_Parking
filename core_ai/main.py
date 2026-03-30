@@ -125,7 +125,17 @@ st.markdown("""
     .fill-orange { background-color: #f97316; }
     .fill-yellow { background-color: #eab308; }
     .fill-green { background-color: #10b981; }
+
+    /* NEW: Stretch the primary button to match metric box height perfectly */
+    button[kind="primary"] {
+        height: 88px; /* Matches the approximate height of your metric boxes */
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 1px; /* Tiny tweak to align the tops perfectly */
+    }
     </style>
+    
     """, unsafe_allow_html=True)
 
 # --- 2. SUPABASE CONNECTION ---
@@ -175,7 +185,6 @@ col1.metric("📍 Total Spaces", total_spaces)
 col2.metric("🟢 Available", available_spaces)
 col3.metric("📈 Occupancy Rate", f"{occupancy_rate}%")
 with col4:
-    st.write("<br>", unsafe_allow_html=True)
     st.button("💳 Quick Action: Pay Now", type="primary", use_container_width=True, on_click=toggle_payment)
 
 st.markdown("---")
