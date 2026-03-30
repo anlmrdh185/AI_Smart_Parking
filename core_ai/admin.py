@@ -24,7 +24,7 @@ from supabase import create_client
 st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="🔐")
 
 st.markdown("""
-    <style>
+   <style>
     /* 1. Admin Header & Logo Styling */
     .admin-logo-header {
         display: flex;
@@ -63,6 +63,8 @@ st.markdown("""
         font-weight: 600 !important;
         color: #64748b !important;
     }
+    <style/>
+    <sytle> 
     .stApp { background-color: #f8fafc; }
     .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #8b5cf6; }
     div[data-testid="metric-container"] { background-color: #ffffff; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
