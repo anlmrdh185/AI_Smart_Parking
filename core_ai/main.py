@@ -234,8 +234,8 @@ if st.session_state.show_payment:
     if entered_slot and entered_slot in df_slots['slot_id'].values:
         row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
             
-            # 3. Check if the car is actually parked there
-            if row['status'] == 'Occupied':
+        # 3. Check if the car is actually parked there
+        if row['status'] == 'Occupied':
                 
                 if st.session_state.payment_stage == "summary":
                     
