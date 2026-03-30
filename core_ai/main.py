@@ -66,6 +66,42 @@ st.markdown("""
     .fill-yellow { background-color: #eab308; }
     .fill-green { background-color: #10b981; }
     </style>
+    <style>
+    /* 1. Main Header with Logo */
+    .main-header {
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #8b5cf6; /* Purple border */
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .logo-img {
+        width: 60px;
+        margin-right: 20px;
+    }
+    .header-text h1 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 28px;
+    }
+    
+    /* 2. Structured Metric Boxes */
+    [data-testid="stMetric"] {
+        background-color: #ffffff;
+        border: 2px solid #e2e8f0; /* Soft gray border */
+        padding: 15px 20px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    [data-testid="stMetric"]:hover {
+        border-color: #8b5cf6;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
     """, unsafe_allow_html=True)
 
 # --- 2. SUPABASE CONNECTION ---
