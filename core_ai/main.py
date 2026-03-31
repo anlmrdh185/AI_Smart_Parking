@@ -462,5 +462,5 @@ with right_panel:
         
     st.markdown(pred_html, unsafe_allow_html=True)
 
-time.sleep(1)
+time.sleep(5)
 st.rerun()
