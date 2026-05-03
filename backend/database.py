@@ -3,23 +3,23 @@ from datetime import datetime
 from supabase import create_client, Client
 
 # --- SUPABASE CLOUD SETUP ---
-# Replace these with your actual Supabase URL and Anon Key
 SUPABASE_URL = "https://edmusfoswgnjarzewzbi.supabase.co"
 SUPABASE_KEY = "sb_publishable_P-od1ESelOgV9dXUKooIlQ_x3FrRWHE"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def record_parking_data(location_code, slot_id, new_status):
+# Change function name to 'update_slot_status' so detector.py can find it
+def update_slot_status(location_code, slot_id, new_status):
     """
-    Function called by manager.py to update the cloud database.
+    Function called by detector.py and detector_m.py to update the cloud database.
     location_code: 'W' for Queensbay, 'M' for USM
     """
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # Determine which table to use based on location_code
-    if location_code == "W":
+    if location_code.startswith("W"):
         table_name = "Queensbay_Parking"
-    elif location_code == "M":
+    elif location_code.startswith("M"):
         table_name = "UsmMosque_Parking"
     else:
         print(f"❌ Error: Invalid location code '{location_code}'")
@@ -41,8 +41,7 @@ def record_parking_data(location_code, slot_id, new_status):
             if response.data and response.data[0].get('start_time'):
                 entry_time = response.data[0]['start_time']
                 
-                # 2. Log the completed session to a 'transactions' table (optional but recommended)
-                # If you don't have a transactions table, you can remove this block.
+                # 2. Log the completed session to a 'transactions' table
                 try:
                     supabase.table('transactions').insert({
                         'location': table_name,
