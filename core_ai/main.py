@@ -364,21 +364,21 @@ if st.session_state.show_payment:
 
                             st.success("Payment successful & slot updated!")
 
-                            except Exception as e:
-                                st.error("Database update failed")
-                                st.write(e)
+                        except Exception as e:
+                            st.error("Database update failed")
+                            st.write(e)
 
-                            st.balloons()
+                        st.balloons()
 
-                            st.markdown(f"""
-                                <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
-                                    <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
-                                    <hr>
-                                    <p style='font-size: 18px;'><b>Status:</b> Paid</p>
-                                    <p style='font-size: 18px;'><b>Action:</b> Barrier will open automatically</p>
-                                    <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
-                                </div>
-                            """, unsafe_allow_html=True)
+                        st.markdown(f"""
+                            <div style='background-color: #f0fdf4; padding: 25px; border-radius: 15px; border: 2px solid #22c55e;'>
+                                <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
+                                <hr>
+                                <p style='font-size: 18px;'><b>Status:</b> Paid</p>
+                                <p style='font-size: 18px;'><b>Action:</b> Barrier will open automatically</p>
+                                <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
+                            </div>
+                        """, unsafe_allow_html=True)
 
                 if st.button("⬅️ Done (Back to Dashboard)", use_container_width=True):
                     st.session_state.payment_stage = "summary"
