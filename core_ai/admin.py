@@ -220,8 +220,8 @@ if menu_selection == "🔍 Parking Monitoring":
             for _, row in wing_data.iterrows():
                 if row.get("slot_id"):
                     parts = row["slot_id"].split("-")
-                        if len(parts) == 2:
-                            status_map[parts[1]] = row["status"]
+                    if len(parts) == 2:
+                        status_map[parts[1]] = row["status"]
             layout = WING_LAYOUTS[selected_wing]
             
             html = "<div style='background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px;'>"
