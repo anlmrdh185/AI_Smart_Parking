@@ -158,9 +158,29 @@ if menu_selection == "🔍 Parking Monitoring":
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+    facility = st.selectbox(
+    "Select Facility",
+    ["Queensbay Mall", "USM Mosque"]
+    )
+
+    # =========================
+    # 5. TABLE MAPPING (KEY FIX)
+    # =========================
+    TABLE_MAP = {
+        "Queensbay Mall": "Queensbay_Parking",
+        "USM Mosque": "UsmMosque_Parking"
+    }
+
+    table_name = TABLE_MAP[facility]
+
     # --------------------------------------
     
-    df_slots = get_cloud_data("slots")
+    df_slots = get_data(table_name)
+
+    if df.empty:
+        st.warning("No data found")
+        st.stop()
     
     total = len(df_slots)
     occupied = len(df_slots[df_slots['status'] == 'Occupied']) if not df_slots.empty else 0
@@ -182,7 +202,8 @@ if menu_selection == "🔍 Parking Monitoring":
         'W3A': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 11)], 'bottom': [f'{i:02}' for i in range(11, 22)]},
         'W5': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(3, 17)], 'bottom': ['02', 'YELLOW'] + [f'{i:02}' for i in range(17, 31)]},
         'W7': {'top': [f'{i:02}' for i in range(1, 14)], 'bottom': [f'{i:02}' for i in range(14, 27)]},
-        'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]}
+        'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]},
+        'M10': {'top': [f'{i:02}' for i in range(1,6)], 'bottom': [f'{i:02}' for i in range(6,13)]}
     }
     OKU_SLOTS = ['W1-01', 'W3A-01', 'W5-01', 'W5-02', 'W5-03']
 
@@ -386,6 +407,29 @@ elif menu_selection == "📊 Generate Reports":
                     st.dataframe(display_df, use_container_width=True)
                     
     st.markdown("</div>", unsafe_allow_html=True)
+    # =========================
+    # 9. MANUAL SLOT UPDATE (FIXED FOR BOTH)
+    # =========================
+    st.markdown("### Update Slot Status")
+
+    slot_id = st.text_input("Slot ID (e.g. W1-05)")
+    new_status = st.selectbox("Status", ["Vacant", "Occupied"])
+
+    if st.button("Update Slot"):
+        if slot_id:
+            try:
+                res = supabase.table(table_name) \
+                    .update({"status": new_status}) \
+                    .eq("slot_id", slot_id) \
+                    .execute()
+
+                if res.data:
+                    st.success("Updated successfully")
+                else:
+                    st.error("Slot not found or update blocked (RLS?)")
+
+            except Exception as e:
+                st.error(str(e))
     # --- NEW: Auto-refresh ONLY when looking at the Grid! ---
     time.sleep(3)
     st.rerun()
