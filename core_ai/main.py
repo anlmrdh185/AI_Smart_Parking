@@ -152,8 +152,6 @@ def get_cloud_data(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
 
-# --- INSERT AFTER CSS, BEFORE HEADER ---
-
 # 1. Initialize selection in session state if not exists
 if 'selected_place' not in st.session_state:
     st.session_state.selected_place = None
@@ -174,18 +172,27 @@ if st.session_state.selected_place is None:
 
 # 3. If place is USM Mosque, show "No Data" and stop
 if st.session_state.selected_place == "USM Mosque":
-    st.title("📍 USM Mosque")
-    st.info("System Status: Under Maintenance / Calibration")
-    st.warning("No live AI data is available for USM Mosque at this time. Please check back later.")
-    if st.button("⬅️ Back to Selection"):
-        st.session_state.selected_place = None
-        st.rerun()
-    st.stop() # Prevents Queensbay code from running
+    df_slots = get_cloud_data("UsmMosque_Parking")
+    selected_wing = "M10"
 
-# --- YOUR EXISTING QUEENSBAY CODE CONTINUES BELOW THIS ---
-# (The Header, Metrics, and Grid View you already built)
+    st.markdown("### 🕌 USM Mosque Parking System (M10 Only)")
 
-df_slots = get_cloud_data("slots")
+    if df_slots.empty:
+        st.warning("No USM parking data found in database.")
+        st.stop()
+
+else:
+    df_slots = get_cloud_data("Queensbay_Parking")
+
+    wings = sorted(df_slots['wing_id'].unique())
+    selected_wing = st.radio("Levels", wings, horizontal=True)
+
+wing_data = df_slots[df_slots['wing_id'] == selected_wing]
+
+status_map = {
+    row['slot_id'].split('-')[1]: row['status']
+    for _, row in wing_data.iterrows()
+}
 
 if 'show_payment' not in st.session_state:
     st.session_state.show_payment = False
@@ -345,7 +352,8 @@ WING_LAYOUTS = {
     'W3A': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 11)], 'bottom': [f'{i:02}' for i in range(11, 22)]},
     'W5': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(3, 17)], 'bottom': ['02', 'YELLOW'] + [f'{i:02}' for i in range(17, 31)]},
     'W7': {'top': [f'{i:02}' for i in range(1, 14)], 'bottom': [f'{i:02}' for i in range(14, 27)]},
-    'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]}
+    'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]},
+    'M10': {'top': [f'{i:02}' for i in range(1,5)], 'bottom': [f'{i:02}' for i in range(5,12)]}
 }
 OKU_SLOTS = ['W1-01', 'W3A-01', 'W5-01', 'W5-02', 'W5-03']
 
