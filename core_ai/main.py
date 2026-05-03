@@ -188,8 +188,6 @@ if st.session_state.selected_place == "USM Mosque":
     selected_wing = "M10"
 else:
     df_slots = get_cloud_data("Queensbay_Parking")
-    
- st.markdown("### 🕌 USM Mosque Parking System")
 
 # safety check
 if df_slots.empty:
@@ -198,7 +196,7 @@ if df_slots.empty:
 
 if st.session_state.selected_place == "USM Mosque":
 
-    st.title("🕌 USM Mosque Parking (M10)")
+    st.title("🕌 USM Mosque Parking")
 
     wings = ["M10"]
     selected_wing = "M10"
