@@ -174,7 +174,7 @@ if menu_selection == "🔍 Parking Monitoring":
 
     table_name = TABLE_MAP[facility]
     
-    df = get_data(table_name)
+    df = get_cloud_data(table_name)
 
     if df.empty:
         st.warning("No data found")
@@ -216,7 +216,12 @@ if menu_selection == "🔍 Parking Monitoring":
         if selected_wing in WING_LAYOUTS:
             st.write(f"**Level: {selected_wing}**")
             wing_data = df[df['wing_id'] == selected_wing]
-            status_map = {row['slot_id'].split('-')[1]: row['status'] for _, row in wing_data.iterrows()}
+            status_map = {}
+            for _, row in wing_data.iterrows():
+                if row.get("slot_id"):
+                    parts = row["slot_id"].split("-")
+                        if len(parts) == 2:
+                            status_map[parts[1]] = row["status"]
             layout = WING_LAYOUTS[selected_wing]
             
             html = "<div style='background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px;'>"
@@ -265,7 +270,7 @@ if menu_selection == "🔍 Parking Monitoring":
         c1, c2 = st.columns([3, 7])
         with c1:
             st.markdown("##### Camera Feeds")
-            wings = sorted(df['wing_id'].unique()) if not df_slots.empty else ["W1", "W3A", "W5", "W7", "W8"]
+            wings = sorted(df['wing_id'].unique()) if not df.empty else ["W1", "W3A", "W5", "W7", "W8"]
             
             selected_cam = st.radio("Select Camera Zone", wings)
             st.markdown("---")
