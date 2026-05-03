@@ -353,7 +353,7 @@ WING_LAYOUTS = {
     'W5': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(3, 17)], 'bottom': ['02', 'YELLOW'] + [f'{i:02}' for i in range(17, 31)]},
     'W7': {'top': [f'{i:02}' for i in range(1, 14)], 'bottom': [f'{i:02}' for i in range(14, 27)]},
     'W8': {'top': [f'{i:02}' for i in range(1, 13)], 'bottom': [f'{i:02}' for i in range(13, 25)]},
-    'M10': {'top': [f'{i:02}' for i in range(1,5)], 'bottom': [f'{i:02}' for i in range(5,12)]}
+    'M10': {'top': [f'{i:02}' for i in range(1,6)], 'bottom': [f'{i:02}' for i in range(6,13)]}
 }
 OKU_SLOTS = ['W1-01', 'W3A-01', 'W5-01', 'W5-02', 'W5-03']
 
