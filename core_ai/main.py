@@ -165,7 +165,7 @@ if st.session_state.selected_place is None:
     place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose location...")
     
    if st.button("Enter"):
-        if place:
+    if place:
             st.session_state.selected_place = place
             st.rerun()
 
