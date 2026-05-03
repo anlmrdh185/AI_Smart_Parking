@@ -8,56 +8,55 @@ SUPABASE_KEY = "sb_publishable_P-od1ESelOgV9dXUKooIlQ_x3FrRWHE"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Change function name to 'update_slot_status' so detector.py can find it
-def update_slot_status(location_code, slot_id, new_status):
+def update_slot_status(wing_id, slot_id, new_status):
     """
-    Function called by detector.py and detector_m.py to update the cloud database.
-    location_code: 'W' for Queensbay, 'M' for USM
+    Called by detector.py. 
+    wing_id: identifies the stream (W1, W5, M10, etc.)
+    slot_id: identifies the specific box (W1-01, etc.)
+    new_status: 'Occupied' or 'Vacant'
     """
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    # Determine which table to use based on location_code
-    if location_code.startswith("W"):
+    # Determine table based on the first letter of wing_id
+    if wing_id.startswith("W"):
         table_name = "Queensbay_Parking"
-    elif location_code.startswith("M"):
+    elif wing_id.startswith("M"):
         table_name = "UsmMosque_Parking"
     else:
-        print(f"❌ Error: Invalid location code '{location_code}'")
-        return None
+        print(f"❌ Error: Unknown wing prefix for {wing_id}")
+        return
 
     try:
         if new_status == "Occupied":
-            # 1. Update Cloud Status to Occupied and set the start_time
-            response = supabase.table(table_name).update({
+            # Update the specific wing and slot in the parking table
+            supabase.table(table_name).update({
                 'status': 'Occupied', 
                 'start_time': now
-            }).eq('slot_id', slot_id).execute()
-            print(f"☁️ Cloud Update: {table_name} Slot {slot_id} is now Occupied at {now}")
+            }).eq('wing_id', wing_id).eq('slot_id', slot_id).execute()
+            print(f"☁️ Cloud Update: {wing_id} | {slot_id} is Occupied")
         
         elif new_status == "Vacant":
-            # 1. Get the start_time from the cloud before clearing it
-            response = supabase.table(table_name).select('start_time').eq('slot_id', slot_id).execute()
+            # 1. Get the entry time first to create a transaction record
+            response = supabase.table(table_name).select('start_time').eq('wing_id', wing_id).eq('slot_id', slot_id).execute()
             
             if response.data and response.data[0].get('start_time'):
                 entry_time = response.data[0]['start_time']
                 
-                # 2. Log the completed session to a 'transactions' table
-                try:
-                    supabase.table('transactions').insert({
-                        'location': table_name,
-                        'slot_id': slot_id,
-                        'entry_time': entry_time,
-                        'exit_time': now
-                    }).execute()
-                except:
-                    pass 
+                # 2. Insert into transactions table with wing_id (W1, M10, etc.)
+                supabase.table('transactions').insert({
+                    'wing_id': wing_id,   # Records exactly which wing it came from
+                    'slot_id': slot_id,
+                    'entry_time': entry_time,
+                    'exit_time': now,
+                    'payment_status': 'Unpaid'
+                }).execute()
 
-            # 3. Reset the slot to Vacant in the cloud
+            # 3. Reset the slot to Vacant
             supabase.table(table_name).update({
                 'status': 'Vacant', 
                 'start_time': None
-            }).eq('slot_id', slot_id).execute()
-            print(f"☁️ Cloud Update: {table_name} Slot {slot_id} is now Vacant")
+            }).eq('wing_id', wing_id).eq('slot_id', slot_id).execute()
+            print(f"☁️ Cloud Update: {wing_id} | {slot_id} is Vacant")
             
     except Exception as e:
-        print(f"❌ Error updating Supabase: {e}")
+        print(f"❌ Supabase Error: {e}")
