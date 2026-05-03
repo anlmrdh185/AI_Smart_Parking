@@ -335,19 +335,39 @@ if st.session_state.show_payment:
                     st.rerun()
 
            # --- STAGE 2: CENTERED QR ---
-            elif st.session_state.payment_stage == "qr":
-                st.markdown(f"""
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                        <h3 style="color: #1e293b;">Scan to Pay RM {fee:.2f}</h3>
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-{entered_slot}" style="border: 5px solid #3b82f6; border-radius: 10px;">
-                        <p style="margin-top: 15px; color: #64748b;">Scan with your banking app</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
-                    with st.spinner("Finalizing receipt..."):
-                        # Update Supabase status to Vacant
-                        supabase.table("slots").update({"status": "Vacant", "start_time": None}).eq("slot_id", entered_slot).execute()
+          elif st.session_state.payment_stage == "qr":
+            st.markdown(f"""
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                    <h3 style="color: #1e293b;">Scan to Pay RM {fee:.2f}</h3>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PAY-{entered_slot}" 
+                         style="border: 5px solid #3b82f6; border-radius: 10px;">
+                    <p style="margin-top: 15px; color: #64748b;">Scan with your banking app</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
+                with st.spinner("Finalizing receipt..."):
+
+                    # =========================
+                    # FIXED: AUTO DETECT TABLE
+                    # =========================
+                    if st.session_state.selected_place == "Queensbay Mall":
+                        table_name = "Queensbay_Parking"
+                    else:
+                        table_name = "UsmMosque_Parking"
+
+                    try:
+                        supabase.table(table_name).update({
+                            "status": "Vacant",
+                            "start_time": None
+                        }).eq("slot_id", entered_slot).execute()
+
+                        st.success("Payment successful & slot updated!")
+
+                        except Exception as e:
+                            st.error("Database update failed")
+                            st.write(e)
+
                         st.balloons()
 
                         st.markdown(f"""
@@ -355,23 +375,16 @@ if st.session_state.show_payment:
                                 <h2 style='color: #166534; margin-top: 0;'>Exit Pass</h2>
                                 <hr>
                                 <p style='font-size: 18px;'><b>Status:</b> Paid</p>
-                                <p style='font-size: 18px;'><b>Action:</b> The barrier will open automatically. You may now exit.</p>
+                                <p style='font-size: 18px;'><b>Action:</b> Barrier will open automatically</p>
                                 <p style='font-size: 18px; color: #be123c;'><b>Grace Period:</b> 15 Minutes</p>
                             </div>
                         """, unsafe_allow_html=True)
 
-                if st.button("⬅️ Done (Back to Dashboard)", use_container_width=True):
-                    # RESET EVERYTHING
-                    st.session_state.payment_stage = "summary"
-                    st.session_state.show_payment = False
-                    st.session_state.confirmed_slot = None
-                    st.rerun()
-        else:
-            st.warning(f"✅ Slot **{entered_slot}** is currently vacant. No payment required.")
-    elif entered_slot:
-        st.error("❌ Invalid Slot ID. Please check the lot number (e.g., W1-05) and try again.")
-
-    st.markdown("---")
+            if st.button("⬅️ Done (Back to Dashboard)", use_container_width=True):
+                st.session_state.payment_stage = "summary"
+                st.session_state.show_payment = False
+                st.session_state.confirmed_slot = None
+                st.rerun()
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
 WING_LAYOUTS = {
     'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
