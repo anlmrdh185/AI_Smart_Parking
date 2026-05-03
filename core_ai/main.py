@@ -206,8 +206,6 @@ if st.session_state.selected_place == "USM Mosque":
 else:
     st.title("🏬 Queensbay Mall Parking")
 
-    wings = sorted(df_slots["wing_id"].unique())
-
     # FIX: add UNIQUE KEY to avoid duplicate widget error
     selected_wing = st.radio(
         "Levels",
