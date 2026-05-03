@@ -165,9 +165,6 @@ if "payment_stage" not in st.session_state:
 
 # 2. Hero Selection Page (This shows if no place is picked)
 if st.session_state.selected_place is None:
-     st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
-     st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
-    
     st.title("🅿️ Smart Parking System")
 
     place = st.selectbox(
@@ -176,7 +173,8 @@ if st.session_state.selected_place is None:
         index=None,
         placeholder="Choose location..."
     )
-   
+    st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
     
     if st.button("Enter"):
         if place:
