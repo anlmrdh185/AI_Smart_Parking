@@ -166,9 +166,8 @@ if st.session_state.selected_place is None:
     
    if st.button("Enter"):
     if place:
-            st.session_state.selected_place = place
-            st.rerun()
-
+        st.session_state.selected_place = place
+        st.rerun()
     st.stop()
 
 # 3. If place is USM Mosque
