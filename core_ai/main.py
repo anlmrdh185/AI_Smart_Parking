@@ -164,36 +164,54 @@ if st.session_state.selected_place is None:
     # Dropdown for locations
     place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose location...")
     
-    if st.button("Enter Dashboard", type="primary"):
+   if st.button("Enter"):
         if place:
             st.session_state.selected_place = place
             st.rerun()
-    st.stop() # Stops everything below from running until selection is made
 
-# 3. If place is USM Mosque, show "No Data" and stop
+    st.stop()
+
+# 3. If place is USM Mosque
 if st.session_state.selected_place == "USM Mosque":
     df_slots = get_cloud_data("UsmMosque_Parking")
     selected_wing = "M10"
-
-    st.markdown("### 🕌 USM Mosque Parking System (M10 Only)")
-
-    if df_slots.empty:
-        st.warning("No USM parking data found in database.")
-        st.stop()
-
 else:
     df_slots = get_cloud_data("Queensbay_Parking")
+    
+ st.markdown("### 🕌 USM Mosque Parking System")
 
-    wings = sorted(df_slots['wing_id'].unique())
-    selected_wing = st.radio("Levels", wings, horizontal=True)
+# safety check
+if df_slots.empty:
+    st.error("No data found in database")
+    st.stop()
 
-wing_data = df_slots[df_slots['wing_id'] == selected_wing]
+if st.session_state.selected_place == "USM Mosque":
+
+    st.title("🕌 USM Mosque Parking (M10)")
+
+    wings = ["M10"]
+    selected_wing = "M10"
+
+    st.info("USM mode active")
+
+else:
+    st.title("🏬 Queensbay Mall Parking")
+
+    wings = sorted(df_slots["wing_id"].unique())
+
+    # FIX: add UNIQUE KEY to avoid duplicate widget error
+    selected_wing = st.radio(
+        "Levels",
+        wings,
+        horizontal=True,
+        key="wing_selector"
+    )
+wing_data = df_slots[df_slots["wing_id"] == selected_wing]
 
 status_map = {
-    row['slot_id'].split('-')[1]: row['status']
+    row["slot_id"].split("-")[1]: row["status"]
     for _, row in wing_data.iterrows()
 }
-
 if 'show_payment' not in st.session_state:
     st.session_state.show_payment = False
 
