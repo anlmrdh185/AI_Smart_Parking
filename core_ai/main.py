@@ -153,21 +153,35 @@ def get_cloud_data(table_name):
     return pd.DataFrame(response.data)
 
 # 1. Initialize selection in session state if not exists
-if 'selected_place' not in st.session_state:
+if "selected_place" not in st.session_state:
     st.session_state.selected_place = None
+
+if "show_payment" not in st.session_state:
+    st.session_state.show_payment = False
+
+if "payment_stage" not in st.session_state:
+    st.session_state.payment_stage = "summary"
+
 
 # 2. Hero Selection Page (This shows if no place is picked)
 if st.session_state.selected_place is None:
-    st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
+     st.markdown("<h1 style='text-align: center; color: #3b82f6;'>Welcome to Smart Parking</h1>", unsafe_allow_html=True)
+     st.markdown("<p style='text-align: center;'>Please select a facility to view live availability</p>", unsafe_allow_html=True)
     
-    # Dropdown for locations
-    place = st.selectbox("Select Destination", ["Queensbay Mall", "USM Mosque"], index=None, placeholder="Choose location...")
+    st.title("🅿️ Smart Parking System")
+
+    place = st.selectbox(
+        "Select Location",
+        ["Queensbay Mall", "USM Mosque"],
+        index=None,
+        placeholder="Choose location..."
+    )
+   
     
-   if st.button("Enter"):
-    if place:
-        st.session_state.selected_place = place
-        st.rerun()
+    if st.button("Enter"):
+        if place:
+            st.session_state.selected_place = place
+            st.rerun()
     st.stop()
 
 # 3. If place is USM Mosque
