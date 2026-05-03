@@ -173,12 +173,10 @@ if menu_selection == "🔍 Parking Monitoring":
     }
 
     table_name = TABLE_MAP[facility]
-
-    # --------------------------------------
     
     df_slots = get_data(table_name)
 
-    if df.empty:
+    if df_slots.empty:
         st.warning("No data found")
         st.stop()
     
