@@ -174,14 +174,14 @@ if menu_selection == "🔍 Parking Monitoring":
 
     table_name = TABLE_MAP[facility]
     
-    df_slots = get_data(table_name)
+    df = get_data(table_name)
 
-    if df_slots.empty:
+    if df.empty:
         st.warning("No data found")
         st.stop()
     
-    total = len(df_slots)
-    occupied = len(df_slots[df_slots['status'] == 'Occupied']) if not df_slots.empty else 0
+    total = len(df)
+    occupied = len(df[df['status'] == 'Occupied']) if not df.empty else 0
     available = total - occupied
     occ_rate = int((occupied / total) * 100) if total > 0 else 0
     
@@ -210,12 +210,12 @@ if menu_selection == "🔍 Parking Monitoring":
         st.markdown("#### Live Parking Status")
         st.markdown("<span style='color:#10b981'>■ Available</span> &nbsp; <span style='color:#ef4444'>■ Occupied</span> &nbsp; <span style='color:#38bdf8'>■ OKU</span>", unsafe_allow_html=True)
         
-        wings = sorted(df_slots['wing_id'].unique()) if not df_slots.empty else []
+        wings = sorted(df['wing_id'].unique()) if not df.empty else []
         selected_wing = st.selectbox("Select Level to Monitor", wings)
         
         if selected_wing in WING_LAYOUTS:
             st.write(f"**Level: {selected_wing}**")
-            wing_data = df_slots[df_slots['wing_id'] == selected_wing]
+            wing_data = df[df['wing_id'] == selected_wing]
             status_map = {row['slot_id'].split('-')[1]: row['status'] for _, row in wing_data.iterrows()}
             layout = WING_LAYOUTS[selected_wing]
             
@@ -265,7 +265,7 @@ if menu_selection == "🔍 Parking Monitoring":
         c1, c2 = st.columns([3, 7])
         with c1:
             st.markdown("##### Camera Feeds")
-            wings = sorted(df_slots['wing_id'].unique()) if not df_slots.empty else ["W1", "W3A", "W5", "W7", "W8"]
+            wings = sorted(df['wing_id'].unique()) if not df_slots.empty else ["W1", "W3A", "W5", "W7", "W8"]
             
             selected_cam = st.radio("Select Camera Zone", wings)
             st.markdown("---")
