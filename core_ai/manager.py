@@ -1,23 +1,27 @@
 import subprocess
 import time
 
-# List of your 5 wings
-wings = ["W3A", "W5", "W1", "W7", "W8"]
-
+wings = ["W1", "W5", "W3A", "W7", "W8", "M10"]
 processes = []
 
 print("--- AI Smart Parking Multi-Stream Engine ---")
 print(f"Launching {len(wings)} wings...")
 
 for wing_id in wings:
-    # Launches detector.py with the wing argument
-    # 'python' might need to be 'python3' depending on your OS
-    p = subprocess.Popen(['python', 'detector.py', '--wing', wing_id])
-    processes.append(p)
-    print(f"Started stream for {wing_id}")
-    time.sleep(2) # Short delay to prevent CPU spike during loading
+    # Decide which detector to use
+    if wing_id == "M10":
+        script = "detector_m.py"
+    else:
+        script = "detector.py"
 
-print("\nAll systems active. Press Ctrl+C in this terminal to stop all.")
+    # Run the correct script
+    p = subprocess.Popen(['python', script, '--wing', wing_id])
+    processes.append(p)
+
+    print(f"Started {script} for {wing_id}")
+    time.sleep(2)
+
+print("\nAll systems active. Press Ctrl+C to stop all.")
 
 try:
     for p in processes:
