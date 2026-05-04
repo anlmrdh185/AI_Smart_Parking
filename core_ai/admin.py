@@ -313,7 +313,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
     
             with col1:
                 st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
-                st.markdown("<div class='settings-title'>💳 Parking Fee Structure (Demo Mode)</div>", unsafe_allow_html=True)
+                st.markdown("<div class='settings-title'>💳 Parking Fee Structure </div>", unsafe_allow_html=True)
                 st.caption("Fees are synced to the cloud and update the live user dashboard instantly.")
         
                 base_fee = st.number_input("Base Rate (RM per entry)", value=float(current_settings['base_fee']), step=0.50)
@@ -365,7 +365,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
     
             with col1:
                 st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
-                st.markdown("<div class='settings-title'>💳 Parking Fee Structure (Demo Mode)</div>", unsafe_allow_html=True)
+                st.markdown("<div class='settings-title'>💳 Parking Fee Structure </div>", unsafe_allow_html=True)
                 st.caption("Fees are synced to the cloud and update the live user dashboard instantly.")
         
                 base_fee = st.number_input("Base Rate (RM per entry)", value=float(current_settings['base_fee']), step=0.50)
@@ -405,6 +405,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("💾 Save Facility Info", key="save_fac"):
                 st.success("Facility information updated in system.")
             st.markdown("</div>", unsafe_allow_html=True)
+            st.rerun()
 
             st.markdown("---")
             st.subheader("🔧 Manual Slot Update")
