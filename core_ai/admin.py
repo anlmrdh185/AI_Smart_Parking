@@ -7,6 +7,11 @@ from supabase import create_client
 # --- 1. PAGE CONFIGURATION & CSS ---
 st.set_page_config(page_title="Smart Parking Admin", layout="wide", page_icon="🔐")
 
+TABLE_MAP = {
+    "Queensbay Mall": "Queensbay_Parking",
+    "USM Mosque": "UsmMosque_Parking"
+}
+
 st.markdown("""
     <style>
     /* ADDED: Main Header & Logo Styling */
@@ -107,9 +112,9 @@ def get_cloud_data(table_name):
     try:
         response = supabase.table(table_name).select("*").execute()
         return pd.DataFrame(response.data)
-    except Exception as e:
+    except:
         return pd.DataFrame()
-
+        
 # --- 3. AUTHENTICATION & MEMORY LOGIC ---
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
@@ -147,7 +152,7 @@ with st.sidebar:
 
 # --- 5. PAGE: PARKING MONITORING ---
 if menu_selection == "🔍 Parking Monitoring":
-
+    st.markdown("""<div class="main-header"><img src="https://cdn-icons-png.flaticon.com/512/2764/2764359.png" width="60" style="margin-right:20px;"><div><h1 style="margin:0;">AI Smart Parking Admin</h1><p style="margin:0;">Live Facility Monitoring</p></div></div>""", unsafe_allow_html=True)
     # --- ADD THIS NEW HEADER BLOCK HERE ---
     st.markdown("""
         <div class="main-header">
