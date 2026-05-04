@@ -340,7 +340,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
 
             st.markdown(f"""
                 <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
-                    <strong>Fee Preview (Simulated)</strong><br>
+                    <strong>Fee Preview </strong><br>
                     <span style='color: #6b7280; font-size: 14px;'>A car parked for 30 seconds will cost: </span> 
                     <span style='float:right; font-weight:bold;'>RM {base_fee + (30 * sec_fee):.2f}</span><br>
                 </div>
