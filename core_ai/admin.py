@@ -302,7 +302,8 @@ elif menu_selection == "⚙️ Settings & Configuration":
     # ADD THIS PICKER HERE:
     manage_place = st.selectbox("Select Facility to Configure", ["Queensbay Mall", "USM Mosque"])
 
-    facility_id = 1 if manage_place == "Queensbay Mall" else 2
+    if manage_place == "USM Mosque":
+        st.info("AI detection for Mosque is not yet linked.")
     
     try:
         settings_res = supabase.table("parking_fee").select("*").eq("id", facility_id).execute()
