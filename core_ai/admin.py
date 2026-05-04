@@ -353,6 +353,24 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("💾 Save Facility Info", key="save_fac"):
                 st.success("Facility information updated in system.")
             st.markdown("</div>", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.subheader("🔧 Manual Slot Update")
+            col_u1, col_u2 = st.columns(2)
+            with col_u1:
+                manual_id = st.text_input("Slot ID (e.g. W1-05)", key="man_id")
+            with col_u2:
+                manual_stat = st.selectbox("Status", ["Vacant", "Occupied"], key="man_stat")
+            
+            if st.button("Update Status"):
+                if manual_id:
+                    res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
+                    if res.data: 
+                        st.success("Updated!")
+                        time.sleep(1)
+                        st.rerun()
+                    else: st.error("Slot not found.")
+
         
     else:
         try:
@@ -405,7 +423,6 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("💾 Save Facility Info", key="save_fac"):
                 st.success("Facility information updated in system.")
             st.markdown("</div>", unsafe_allow_html=True)
-            st.rerun()
 
             st.markdown("---")
             st.subheader("🔧 Manual Slot Update")
