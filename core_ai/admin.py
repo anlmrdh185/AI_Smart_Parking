@@ -298,51 +298,148 @@ if menu_selection == "🔍 Parking Monitoring":
 
 # --- 6. PAGE: SETTINGS & MANAGEMENT ---
 elif menu_selection == "⚙️ Settings & Configuration":
-    st.markdown("<div class='admin-header'><h2 style='margin:0;'>Settings & Configuration</h2></div>", unsafe_allow_html=True)
-    
+    st.markdown("<div class='admin-header'><h2 style='margin:0;'>Settings & Configuration</h2><p style='margin:0; opacity: 0.8;'>Manage parking fees and facility layout information</p></div>", unsafe_allow_html=True)
+    # ADD THIS PICKER HERE:
     manage_place = st.selectbox("Select Facility to Configure", ["Queensbay Mall", "USM Mosque"])
 
-    # FIXED: Define facility_id based on selection
-    facility_id = 1 if manage_place == "Queensbay Mall" else 2
-
-    # Fetch current settings
-    try:
-        settings_res = supabase.table("parking_fee").select("*").eq("id", facility_id).execute()
-        current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
-    except Exception:
-        current_settings = {"base_fee": 2.0, "rate_per_second": 0.1}
-
-    col1, col2 = st.columns(2)
+    if manage_place == "USM Mosque":
+        try:
+            settings_res = supabase.table("parking_fee").select("*").eq("id", facility_id).execute()
+            current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
+        except Exception:
+            current_settings = {"base_fee": 2.0, "rate_per_second": 0.1}
+            
+            col1, col2 = st.columns(2)
     
-    with col1:
-        st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='settings-title'>💳 Fee Structure: {manage_place}</div>", unsafe_allow_html=True)
+            with col1:
+                st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
+                st.markdown("<div class='settings-title'>💳 Parking Fee Structure </div>", unsafe_allow_html=True)
+                st.caption("Fees are synced to the cloud and update the live user dashboard instantly.")
         
-        base_fee = st.number_input("Base Rate (RM)", value=float(current_settings['base_fee']), step=0.50, key="bf")
-        sec_fee = st.number_input("Rate per Second (RM)", value=float(current_settings['rate_per_second']), step=0.01, key="rf")
+                base_fee = st.number_input("Base Rate (RM per entry)", value=float(current_settings['base_fee']), step=0.50)
+                sec_fee = st.number_input("Rate per Second Parked (RM)", value=float(current_settings['rate_per_second']), step=0.05)
         
-        if st.button("💾 Save Fee Structure"):
-            try:
-                supabase.table("parking_fee").upsert({
-                    "id": facility_id, 
-                    "base_fee": base_fee, 
-                    "rate_per_second": sec_fee,
-                    "facility_name": manage_place
-                }).execute()
-                st.success(f"Fees for {manage_place} updated!")
-            except Exception as e:
-                st.error(f"Error: {e}")
+                if st.button("💾 Save Fee Structure", key="save_fees"):
+                    try:
+                # Upsert using the specific facility_id
+                        supabase.table("parking_fee").upsert({
+                            "id": facility_id, 
+                            "base_fee": base_fee, 
+                            "rate_per_second": sec_fee,
+                            "facility_name": manage_place # Optional: if your table has this column
+                        }).execute()
+                        st.success(f"Fees for {manage_place} updated in Cloud Database!")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            
+                st.markdown(f"""
+                <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
+                    <strong>Fee Preview (Simulated)</strong><br>
+                    <span style='color: #6b7280; font-size: 14px;'>A car parked for 30 seconds will cost: </span> 
+                    <span style='float:right; font-weight:bold;'>RM {base_fee + (30 * sec_fee):.2f}</span><br>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
         
-        st.markdown(f"**Fee Preview:** RM {base_fee + (30 * sec_fee):.2f} (30s stay)")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with col2:
+            st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='settings-title'>📍 Facility Information</div>", unsafe_allow_html=True)
         
-    with col2:
-        st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
-        st.markdown("<div class='settings-title'>📍 Facility Information</div>", unsafe_allow_html=True)
-        st.text_input("Address", value="USM, Penang" if facility_id == 2 else "Queensbay, Penang")
-        st.button("💾 Save Info")
-        st.markdown("</div>", unsafe_allow_html=True)
+            f_name = st.text_input("Facility Name", value="USM Mosque Parking")
+            f_address = st.text_input("Address", value="USM, Pulau Penang")
+            f_levels = st.text_input("Total Levels", value="1")
+            f_hours = st.text_input("Operating Hours", value="24/7")
+        
+            if st.button("💾 Save Facility Info", key="save_fac"):
+                st.success("Facility information updated in system.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.subheader("🔧 Manual Slot Update")
+            col_u1, col_u2 = st.columns(2)
+            with col_u1:
+                manual_id = st.text_input("Slot ID (e.g. W1-05)", key="man_id")
+            with col_u2:
+                manual_stat = st.selectbox("Status", ["Vacant", "Occupied"], key="man_stat")
+            
+            if st.button("Update Status"):
+                if manual_id:
+                    res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
+                    if res.data: 
+                        st.success("Updated!")
+                        time.sleep(1)
+                        st.rerun()
+                    else: st.error("Slot not found.")
 
+        
+    else:
+        try:
+            settings_res = supabase.table("parking_fee").select("*").eq("id", facility_id).execute()
+            current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
+        except Exception:
+            current_settings = {"base_fee": 2.0, "rate_per_second": 0.1}
+            
+            col1, col2 = st.columns(2)
+    
+            with col1:
+                st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
+                st.markdown("<div class='settings-title'>💳 Parking Fee Structure </div>", unsafe_allow_html=True)
+                st.caption("Fees are synced to the cloud and update the live user dashboard instantly.")
+        
+                base_fee = st.number_input("Base Rate (RM per entry)", value=float(current_settings['base_fee']), step=0.50)
+                sec_fee = st.number_input("Rate per Second Parked (RM)", value=float(current_settings['rate_per_second']), step=0.05)
+        
+                if st.button("💾 Save Fee Structure", key="save_fees"):
+                    try:
+                # Upsert using the specific facility_id
+                        supabase.table("parking_fee").upsert({
+                            "id": facility_id, 
+                            "base_fee": base_fee, 
+                            "rate_per_second": sec_fee,
+                            "facility_name": manage_place # Optional: if your table has this column
+                        }).execute()
+                        st.success(f"Fees for {manage_place} updated in Cloud Database!")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+            
+                st.markdown(f"""
+                <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
+                    <strong>Fee Preview (Simulated)</strong><br>
+                    <span style='color: #6b7280; font-size: 14px;'>A car parked for 30 seconds will cost: </span> 
+                    <span style='float:right; font-weight:bold;'>RM {base_fee + (30 * sec_fee):.2f}</span><br>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("<div class='settings-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='settings-title'>📍 Facility Information</div>", unsafe_allow_html=True)
+        
+            f_name = st.text_input("Facility Name", value="Outside Parking Mall")
+            f_address = st.text_input("Address", value="QueenBays Mall, Pulau Penang")
+            f_levels = st.text_input("Total Levels", value="5")
+            f_hours = st.text_input("Operating Hours", value="24/7")
+        
+            if st.button("💾 Save Facility Info", key="save_fac"):
+                st.success("Facility information updated in system.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            st.markdown("---")
+            st.subheader("🔧 Manual Slot Update")
+            col_u1, col_u2 = st.columns(2)
+            with col_u1:
+                manual_id = st.text_input("Slot ID (e.g. W1-05)", key="man_id")
+            with col_u2:
+                manual_stat = st.selectbox("Status", ["Vacant", "Occupied"], key="man_stat")
+            
+            if st.button("Update Status"):
+                if manual_id:
+                    res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
+                    if res.data: 
+                        st.success("Updated!")
+                        time.sleep(1)
+                        st.rerun()
+                    else: st.error("Slot not found.")
 # --- 7. PAGE: GENERATE REPORTS ---
 elif menu_selection == "📊 Generate Reports":
     st.markdown("<div class='admin-header'><h2 style='margin:0;'>Generate Reports</h2><p style='margin:0; opacity: 0.8;'>Analyze parking data, usage, and revenue</p></div>", unsafe_allow_html=True)
