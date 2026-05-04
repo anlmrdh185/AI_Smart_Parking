@@ -362,7 +362,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("Update Status"):
                 if manual_id:
                     res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
-                       if res.data: 
+                    if res.data: 
                         st.success("Updated!")
                         time.sleep(1)
                         st.rerun()
