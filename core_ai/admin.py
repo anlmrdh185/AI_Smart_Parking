@@ -342,19 +342,33 @@ elif menu_selection == "⚙️ Settings & Configuration":
     with col2:
         st.markdown("### 📍 Facility Info")
 
-        f_name = st.text_input("Name", value=manage_place)
-        f_address = st.text_input("Address")
-        f_levels = st.text_input("Levels")
-        f_hours = st.text_input("Hours", value="24/7")
+        try:
+            res = supabase.table("facility_info").select("*").eq("facility_name", manage_place).execute()
+            info = res.data[0] if res.data else {}
+        except:
+            info = {}
+
+        # --- INPUTS (DYNAMIC) ---
+        f_name = st.text_input("Facility Name", value=info.get("facility_name", manage_place))
+        f_address = st.text_input("Address", value=info.get("address", ""))
+        f_levels = st.text_input("Total Levels", value=info.get("total_levels", ""))
+        f_hours = st.text_input("Operating Hours", value=info.get("operating_hours", "24/7"))
 
         if st.button("💾 Save Facility Info"):
-            st.success("Saved")
+            supabase.table("facility_info").upsert({
+            "facility_name": manage_place,
+            "address": f_address,
+            "total_levels": f_levels,
+            "operating_hours": f_hours
+        }).execute()
+
+        st.success(f"{manage_place} updated ✅")
 
     # --- MANUAL SLOT UPDATE ---
     st.markdown("---")
     st.subheader("🔧 Manual Slot Update")
 
-    slot_id = st.text_input("Slot ID (e.g. W1-05)")
+    slot_id = st.text_input("Slot ID")
     new_status = st.selectbox("Status", ["Vacant", "Occupied"])
 
     if st.button("Update Slot"):
