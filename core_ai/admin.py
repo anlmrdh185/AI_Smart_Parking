@@ -302,15 +302,13 @@ elif menu_selection == "⚙️ Settings & Configuration":
     # ADD THIS PICKER HERE:
     manage_place = st.selectbox("Select Facility to Configure", ["Queensbay Mall", "USM Mosque"])
 
-    if manage_place == "USM Mosque":
-        st.info("AI detection for Mosque is not yet linked.")
-
-    else:
-        try:
-            settings_res = supabase.table("parking_fee").select("*").eq("id", 1).execute()
-            curr = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
-        except:
-            curr = {"base_fee": 2.0, "rate_per_second": 0.1}
+    facility_id = 1 if manage_place == "Queensbay Mall" else 2
+    
+    try:
+        settings_res = supabase.table("parking_fee").select("*").eq("id", facility_id).execute()
+        current_settings = settings_res.data[0] if settings_res.data else {"base_fee": 2.0, "rate_per_second": 0.1}
+    except Exception:
+        current_settings = {"base_fee": 2.0, "rate_per_second": 0.1}
             
         col1, col2 = st.columns(2)
     
@@ -319,15 +317,21 @@ elif menu_selection == "⚙️ Settings & Configuration":
             st.markdown("<div class='settings-title'>💳 Parking Fee Structure (Demo Mode)</div>", unsafe_allow_html=True)
             st.caption("Fees are synced to the cloud and update the live user dashboard instantly.")
         
-            base_fee = st.number_input("Base Rate (RM per entry)", value=float(curr['base_fee']), step=0.50)
-            sec_fee = st.number_input("Rate per Second Parked (RM)", value=float(curr['rate_per_second']), step=0.05)
+            base_fee = st.number_input("Base Rate (RM per entry)", value=float(current_settings['base_fee']), step=0.50)
+            sec_fee = st.number_input("Rate per Second Parked (RM)", value=float(current_settings['rate_per_second']), step=0.05)
         
             if st.button("💾 Save Fee Structure", key="save_fees"):
                 try:
-                    supabase.table("parking_fee").upsert({"id": 1, "base_fee": base_fee, "rate_per_second": sec_fee}).execute()
-                    st.success("Fee structure successfully updated to Cloud Database!")
-                except Exception as e:
-                    st.error("Failed to save. Please check your Supabase connection.")
+                # Upsert using the specific facility_id
+                supabase.table("parking_fee").upsert({
+                    "id": facility_id, 
+                    "base_fee": base_fee, 
+                    "rate_per_second": sec_fee,
+                    "facility_name": manage_place # Optional: if your table has this column
+                }).execute()
+                st.success(f"Fees for {manage_place} updated in Cloud Database!")
+            except Exception as e:
+                st.error(f"Error: {e}")
             
             st.markdown(f"""
             <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
