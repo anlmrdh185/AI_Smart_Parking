@@ -185,10 +185,6 @@ if menu_selection == "🔍 Parking Monitoring":
     st.markdown("<br><p style='color:#64748b; font-size:14px; margin-bottom: 5px;'>View Mode</p>", unsafe_allow_html=True)
     view_mode = st.radio("View Mode", ["Grid View", "CCTV Stream View"], horizontal=True, label_visibility="collapsed")
     st.markdown("---")
-
-    if view_mode == "Grid View":
-            wings = sorted(df['wing_id'].unique())
-            selected_wing = st.selectbox("Select Level", wings)
     
     WING_LAYOUTS = {
         'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
@@ -256,9 +252,6 @@ if menu_selection == "🔍 Parking Monitoring":
             html += "</div></div></div></div>" 
             st.markdown(html, unsafe_allow_html=True)
             
-        # --- FIXED AUTO REFRESH LOOP ---
-        time.sleep(3)
-        st.rerun()
             
     # --- CCTV STREAM VIEW ---
     elif view_mode == "CCTV Stream View":
@@ -302,26 +295,6 @@ if menu_selection == "🔍 Parking Monitoring":
                 """
                 st.markdown(cctv_html, unsafe_allow_html=True)
                 
-            st.markdown("---")
-            st.subheader("🔧 Manual Slot Update")
-            col_u1, col_u2 = st.columns(2)
-            with col_u1:
-                manual_id = st.text_input("Slot ID (e.g. W1-05)", key="man_id")
-            with col_u2:
-                manual_stat = st.selectbox("Status", ["Vacant", "Occupied"], key="man_stat")
-            
-            if st.button("Update Status"):
-                if manual_id:
-                    res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
-                    if res.data: 
-                        st.success("Updated!")
-                        time.sleep(1)
-                        st.rerun()
-                    else: st.error("Slot not found.")
-                        
-            # Refresh timer only for Grid
-            time.sleep(3)
-            st.rerun()
 
 # --- 6. PAGE: SETTINGS & MANAGEMENT ---
 elif menu_selection == "⚙️ Settings & Configuration":
@@ -377,6 +350,23 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("💾 Save Facility Info", key="save_fac"):
                 st.success("Facility information updated in system.")
             st.markdown("</div>", unsafe_allow_html=True)
+
+            st.markdown("---")
+                st.subheader("🔧 Manual Slot Update")
+                col_u1, col_u2 = st.columns(2)
+                with col_u1:
+                    manual_id = st.text_input("Slot ID (e.g. W1-05)", key="man_id")
+                with col_u2:
+                    manual_stat = st.selectbox("Status", ["Vacant", "Occupied"], key="man_stat")
+            
+                if st.button("Update Status"):
+                    if manual_id:
+                        res = supabase.table(table_name).update({"status": manual_stat}).eq("slot_id", manual_id).execute()
+                        if res.data: 
+                            st.success("Updated!")
+                            time.sleep(1)
+                            st.rerun()
+                        else: st.error("Slot not found.")
 
 # --- 7. PAGE: GENERATE REPORTS ---
 elif menu_selection == "📊 Generate Reports":
