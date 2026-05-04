@@ -338,6 +338,15 @@ elif menu_selection == "⚙️ Settings & Configuration":
             except Exception as e:
                 st.error(f"Error: {e}")
 
+            st.markdown(f"""
+                <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
+                    <strong>Fee Preview (Simulated)</strong><br>
+                    <span style='color: #6b7280; font-size: 14px;'>A car parked for 30 seconds will cost: </span> 
+                    <span style='float:right; font-weight:bold;'>RM {base_fee + (30 * sec_fee):.2f}</span><br>
+                </div>
+            """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
     # --- RIGHT: FACILITY INFO ---
     with col2:
         st.markdown("### 📍 Facility Info")
