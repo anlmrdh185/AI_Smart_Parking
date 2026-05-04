@@ -323,15 +323,15 @@ elif menu_selection == "⚙️ Settings & Configuration":
             if st.button("💾 Save Fee Structure", key="save_fees"):
                 try:
                 # Upsert using the specific facility_id
-                supabase.table("parking_fee").upsert({
-                    "id": facility_id, 
-                    "base_fee": base_fee, 
-                    "rate_per_second": sec_fee,
-                    "facility_name": manage_place # Optional: if your table has this column
-                }).execute()
-                st.success(f"Fees for {manage_place} updated in Cloud Database!")
-            except Exception as e:
-                st.error(f"Error: {e}")
+                    supabase.table("parking_fee").upsert({
+                        "id": facility_id, 
+                        "base_fee": base_fee, 
+                        "rate_per_second": sec_fee,
+                        "facility_name": manage_place # Optional: if your table has this column
+                    }).execute()
+                    st.success(f"Fees for {manage_place} updated in Cloud Database!")
+                except Exception as e:
+                    st.error(f"Error: {e}")
             
             st.markdown(f"""
             <div style='background: #faf5ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e9d5ff;'>
