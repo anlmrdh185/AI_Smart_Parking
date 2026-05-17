@@ -37,7 +37,7 @@ FRAMES_TO_VACATE = 30  # Increased for higher security against flickering
 # 3. LOAD MODEL & DATA
 print(f"[{W_ID}] Loading YOLOv5n Model...")
 model = torch.hub.load(yolo_repo, 'custom', path=weights_path, source='local')
-model.conf = 0.2
+model.conf = 0.5
 
 print(f"[{W_ID}] Loading Slot Config: {pickle_path}")
 with open(pickle_path, 'rb') as f:
