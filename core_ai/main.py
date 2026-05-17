@@ -383,7 +383,7 @@ if st.session_state.show_payment:
                             </div>
                         """, unsafe_allow_html=True)
 
-                if st.button("⬅️ Done (Back to Dashboard)", use_container_width=True):
+                if st.button("⬅️ Back to Dashboard", use_container_width=True):
                     st.session_state.payment_stage = "summary"
                     st.session_state.show_payment = False
                     st.session_state.confirmed_slot = None
