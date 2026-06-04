@@ -434,5 +434,5 @@ elif menu_selection == "📊 Generate Reports":
     st.markdown("</div>", unsafe_allow_html=True)
 
     # --- NEW: Auto-refresh ONLY when looking at the Grid! ---
-    time.sleep(3)
+    time.sleep(5)
     st.rerun()
