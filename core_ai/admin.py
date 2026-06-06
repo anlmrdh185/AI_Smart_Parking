@@ -354,8 +354,10 @@ elif menu_selection == "⚙️ Settings & Configuration":
         try:
             res = supabase.table("facility_info").select("*").eq("facility_name", manage_place).execute()
             info = res.data[0] if res.data else {}
-        except:
-            info = {}
+            
+        except Exception as e:
+            st.error(f"Database Error: {e}")
+            print(f"Full Error Details: {e}") # This will print the exact Postgres error in your terminal
 
         # --- INPUTS (DYNAMIC) ---
         f_name = st.text_input("Facility Name", value=info.get("facility_name", manage_place))
