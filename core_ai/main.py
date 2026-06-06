@@ -152,6 +152,18 @@ def get_cloud_data(table_name):
     response = supabase.table(table_name).select("*").execute()
     return pd.DataFrame(response.data)
 
+@st.cache_data(ttl=600) # Cache for 10 minutes to save API calls
+def get_historical_transactions(wing_id):
+    try:
+        response = supabase.table('transactions').select('*').eq('wing_id', wing_id).execute()
+        df = pd.DataFrame(response.data)
+        if not df.empty:
+            df['entry_time'] = pd.to_datetime(df['entry_time'])
+        return df
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return pd.DataFrame()
+
 # 1. Initialize selection in session state if not exists
 if "selected_place" not in st.session_state:
     st.session_state.selected_place = None
@@ -162,8 +174,7 @@ if "show_payment" not in st.session_state:
 if "payment_stage" not in st.session_state:
     st.session_state.payment_stage = "summary"
 
-
-# 2. Hero Selection Page (This shows if no place is picked)
+# 2. Hero Selection Page
 if st.session_state.selected_place is None:
     st.title("🅿️ Smart Parking System")
 
@@ -195,19 +206,13 @@ if df_slots.empty:
     st.stop()
 
 if st.session_state.selected_place == "USM Mosque":
-
     st.title("🕌 USM Mosque Parking")
-
     wings = ["M10"]
     selected_wing = "M10"
-
     st.info("USM mode active")
-
 else:
     st.title("🏬 Queensbay Mall Parking")
     wings = sorted(df_slots["wing_id"].unique())
-
-    # FIX: add UNIQUE KEY to avoid duplicate widget error
     selected_wing = st.radio(
         "Levels",
         wings,
@@ -256,32 +261,27 @@ with col4:
 st.markdown("---")
 
 if 'payment_stage' not in st.session_state:
-    st.session_state.payment_stage = "summary" # summary -> qr -> success
+    st.session_state.payment_stage = "summary" 
 
 if st.session_state.show_payment:
     st.markdown("---")
     st.info("💳 **Secure Payment Portal**")
     
-    # Initialize confirmed slot and state
     if 'confirmed_slot' not in st.session_state:
         st.session_state.confirmed_slot = None
 
-    # Step 1: Input Slot ID
     if st.session_state.payment_stage == "summary":
         entered_slot = st.text_input("Enter Your Parking Slot ID:", placeholder="e.g. W1-05").strip().upper()
         if entered_slot:
             st.session_state.confirmed_slot = entered_slot
     else:
-        # Keep the slot ID visible in subsequent steps
         st.markdown(f"### 🅿️ Slot: {st.session_state.confirmed_slot}")
         entered_slot = st.session_state.confirmed_slot
 
     if entered_slot and entered_slot in df_slots['slot_id'].values:
         row = df_slots[df_slots['slot_id'] == entered_slot].iloc[0]
 
-        # 3. Check if the car is actually parked there
         if row['status'] == 'Occupied':
-            # --- DYNAMIC FEE CALCULATION ---
             try:
                 entry_time_str = row['start_time'].replace('T', ' ').split('.')[0]
                 entry_time_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
@@ -308,7 +308,6 @@ if st.session_state.show_payment:
             fee = base_fee + (blocks_of_10s * rate_per_10_sec)
             stable_ticket_id = abs(hash(entered_slot)) % 90000 + 10000
 
-            # --- PAYMENT STAGES (FIXED INDENTATION) ---
             payment_html = f"""
                 <div class='payment-card'>
                     <div class='payment-header'>🅿️ Parking Fee Summary</div>
@@ -337,7 +336,6 @@ if st.session_state.show_payment:
                     st.session_state.payment_stage = "qr"
                     st.rerun()
 
-           # --- STAGE 2: CENTERED QR ---
             elif st.session_state.payment_stage == "qr":
                 st.markdown(f"""
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
@@ -350,10 +348,6 @@ if st.session_state.show_payment:
 
                 if st.button("✅ I Have Completed Payment", type="primary", use_container_width=True):
                     with st.spinner("Finalizing receipt..."):
-
-                        # =========================
-                        # FIXED: AUTO DETECT TABLE
-                        # =========================
                         if st.session_state.selected_place == "Queensbay Mall":
                             table_name = "Queensbay_Parking"
                         else:
@@ -388,6 +382,7 @@ if st.session_state.show_payment:
                     st.session_state.show_payment = False
                     st.session_state.confirmed_slot = None
                     st.rerun()
+
 # --- 4. PRECISE ARCHITECTURE MAPPING ---
 WING_LAYOUTS = {
     'W1': {'top': ['01', 'YELLOW'] + [f'{i:02}' for i in range(2, 16)], 'bottom': [f'{i:02}' for i in range(16, 31)]},
@@ -468,19 +463,6 @@ with left_panel:
     else:
         st.warning("No data found in Supabase.")
 
-@st.cache_data(ttl=600) # Cache for 10 minutes to save API calls
-def get_historical_transactions(wing_id):
-    try:
-        response = supabase.table('transactions').select('*').eq('wing_id', wing_id).execute()
-        df = pd.DataFrame(response.data)
-        if not df.empty:
-            # Convert entry_time to proper datetime objects
-            df['entry_time'] = pd.to_datetime(df['entry_time'])
-        return df
-    except Exception as e:
-        print(f"Error fetching history: {e}")
-        return pd.DataFrame()
-
 # --- 6. RIGHT PANEL: CUSTOM PREDICTION UI ---
 with right_panel:
     st.markdown("#### 📈 Occupancy Prediction")
@@ -520,6 +502,38 @@ with right_panel:
     
     # Use historical trend for next hour, fallback to current occupancy if no data
     forecast = hourly_trend.get(next_hour, min(100, occupancy_rate + 5))
+
+    # 3. Determine Badges based on the dynamic forecast
+    if forecast < 50:
+        badge_class, badge_text, sub_text = "badge-low", "Low", "Off-peak hours"
+    elif forecast < 80:
+        badge_class, badge_text, sub_text = "badge-med", "Medium", "Steady traffic"
+    else:
+        badge_class, badge_text, sub_text = "badge-high", "High", "Peak hours approaching"
+
+    # Current Occupancy Card
+    pred_html = f"<div class='pred-card-blue'><div class='pred-header'><span>Current Occupancy</span><span class='pred-header-val'>{occupancy_rate}%</span></div><div class='progress-track'><div class='progress-fill-blue' style='width: {occupancy_rate}%;'></div></div></div>"
+    
+    # Forecast Card
+    pred_html += f"<div class='pred-card-purple'><div class='pred-header'><span>🕒 Next Hour Forecast</span><span class='forecast-val'>{forecast}%</span></div><span class='{badge_class}'>{badge_text}</span><div class='sub-text'>{sub_text}</div></div>"
+    
+    # Dynamic Best Times
+    pred_html += "<div style='font-size: 13px; color: #059669; margin-bottom: 8px;'>① Best Times to Visit</div>"
+    for label, time_str in best_times:
+        pred_html += f"<div class='time-pill'><span style='color: #475569; font-weight: normal;'>{label}</span><span>{time_str}</span></div>"
+    
+    # Dynamic Bar Chart for the Day
+    pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast</div>"
+    
+    # Generate chart bars for specific hours (8 AM to 10 PM)
+    display_hours = [8, 10, 12, 14, 16, 18, 20, 22]
+    for h in display_hours:
+        val = hourly_trend.get(h, random.randint(10, 20)) # Get historical % or default low
+        color_class = "fill-green" if val < 50 else "fill-yellow" if val < 80 else "fill-red"
+        time_label = f"{h%12 or 12} {'AM' if h < 12 else 'PM'}"
+        
+        pred_html += f"<div class='bar-chart-row'><div class='bar-chart-time'>{time_label}</div><div class='bar-chart-track'><div class='bar-chart-fill {color_class}' style='width: {val}%;'></div></div><div class='bar-chart-val'>{val}%</div></div>"
+        
     st.markdown(pred_html, unsafe_allow_html=True)
 
 time.sleep(5)
