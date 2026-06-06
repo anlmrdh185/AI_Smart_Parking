@@ -10,40 +10,6 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # =========================================
-# 🚀 INITIALIZE ALL SLOTS (RUN ONCE START)
-# =========================================
-def initialize_slots(wing_id, total_slots):
-
-    wing_id = wing_id.strip().upper()
-
-    if wing_id.startswith("W"):
-        table_name = "Queensbay_Parking"
-    elif wing_id.startswith("M"):
-        table_name = "UsmMosque_Parking"
-    else:
-        print(f"❌ Unknown wing: {wing_id}")
-        return
-
-    print(f"🚀 Initializing {wing_id} ({total_slots} slots) → {table_name}")
-
-    for i in range(1, total_slots + 1):
-        slot_id = f"{wing_id}-{str(i).zfill(2)}"
-
-        try:
-            supabase.table(table_name).upsert({
-                'wing_id': wing_id,
-                'slot_id': slot_id,
-                'status': 'Vacant',
-                'start_time': None
-            }).execute()
-
-            print(f"✅ {slot_id} ready")
-
-        except Exception as e:
-            print(f"❌ Error creating {slot_id}: {e}")
-
-
-# =========================================
 # 🔄 UPDATE SLOT STATUS (REAL-TIME)
 # =========================================
 def update_slot_status(wing_id, slot_id, new_status):
@@ -64,6 +30,20 @@ def update_slot_status(wing_id, slot_id, new_status):
     print(f"DEBUG → {wing_id} | {slot_id} → {new_status} ({table_name})")
 
     try:
+        # ==========================================
+        # 🛡️ THE SHIELD: CHECK FOR MAINTENANCE FIRST
+        # ==========================================
+        # Ask the database what the CURRENT status is
+        check_res = supabase.table(table_name).select('status').eq('wing_id', wing_id).eq('slot_id', slot_id).execute()
+        
+        if check_res.data:
+            current_status = check_res.data[0].get('status')
+            
+            # If Admin set it to Maintenance, IGNORE the camera!
+            if current_status == "Maintenance":
+                print(f"🚧 {slot_id} is under Maintenance. Ignoring AI camera update.")
+                return # <-- This immediately stops the function so it won't be overwritten
+
         # ==========================
         # 🚗 OCCUPIED
         # ==========================
