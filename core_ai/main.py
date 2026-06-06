@@ -468,48 +468,58 @@ with left_panel:
     else:
         st.warning("No data found in Supabase.")
 
+@st.cache_data(ttl=600) # Cache for 10 minutes to save API calls
+def get_historical_transactions(wing_id):
+    try:
+        response = supabase.table('transactions').select('*').eq('wing_id', wing_id).execute()
+        df = pd.DataFrame(response.data)
+        if not df.empty:
+            # Convert entry_time to proper datetime objects
+            df['entry_time'] = pd.to_datetime(df['entry_time'])
+        return df
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return pd.DataFrame()
+
 # --- 6. RIGHT PANEL: CUSTOM PREDICTION UI ---
 with right_panel:
     st.markdown("#### 📈 Occupancy Prediction")
     
-    # Logic for the dynamic Next Hour Forecast
-    forecast = min(100, occupancy_rate + 5)
-    if forecast < 50:
-        badge_class = "badge-low"
-        badge_text = "Low"
-        sub_text = "Off-peak hours"
-    elif forecast < 80:
-        badge_class = "badge-med"
-        badge_text = "Medium"
-        sub_text = "Steady traffic"
-    else:
-        badge_class = "badge-high"
-        badge_text = "High"
-        sub_text = "Peak hours approaching"
-
-    # FLATTENED HTML to prevent Streamlit from making it a code block
-    pred_html = f"<div class='pred-card-blue'><div class='pred-header'><span>Current Occupancy</span><span class='pred-header-val'>{occupancy_rate}%</span></div><div class='progress-track'><div class='progress-fill-blue' style='width: {occupancy_rate}%;'></div></div></div>"
+    # 1. Fetch historical data for the currently selected wing
+    history_df = get_historical_transactions(selected_wing)
     
-    pred_html += f"<div class='pred-card-purple'><div class='pred-header'><span>🕒 Next Hour Forecast</span><span class='forecast-val'>{forecast}%</span></div><span class='{badge_class}'>{badge_text}</span><div class='sub-text'>{sub_text}</div></div>"
+    # Default fallback values if history is empty
+    hourly_trend = {}
+    best_times = [("Early Morning", "6 AM - 8 AM"), ("Late Evening", "9 PM - 11 PM")]
     
-    pred_html += "<div style='font-size: 13px; color: #059669; margin-bottom: 8px;'>① Best Times to Visit</div>"
-    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Early Morning</span><span>6 AM - 8 AM</span></div>"
-    pred_html += "<div class='time-pill'><span style='color: #475569; font-weight: normal;'>Late Evening</span><span>9 PM - 11 PM</span></div>"
-    
-    pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast</div>"
-    
-    # Mock data for the bar chart
-    forecast_data = [
-        ("8 AM", 75, "fill-orange"), ("10 AM", 82, "fill-orange"),
-        ("12 PM", 95, "fill-red"), ("2 PM", 88, "fill-red"),
-        ("4 PM", 78, "fill-orange"), ("6 PM", 90, "fill-red"),
-        ("8 PM", 65, "fill-yellow"), ("10 PM", 45, "fill-green")
-    ]
-    
-    # FLATTENED Loop
-    for time_label, val, color_class in forecast_data:
-        pred_html += f"<div class='bar-chart-row'><div class='bar-chart-time'>{time_label}</div><div class='bar-chart-track'><div class='bar-chart-fill {color_class}' style='width: {val}%;'></div></div><div class='bar-chart-val'>{val}%</div></div>"
+    if not history_df.empty:
+        # Extract the hour from the entry times
+        history_df['hour'] = history_df['entry_time'].dt.hour
         
+        # Count how many cars park during each hour historically
+        hourly_counts = history_df.groupby('hour').size()
+        
+        # Normalize to a percentage (0-100%) based on the busiest historical hour
+        max_traffic = hourly_counts.max()
+        if max_traffic > 0:
+            hourly_trend = (hourly_counts / max_traffic * 100).fillna(0).astype(int).to_dict()
+            
+        # Dynamically find the 2 quietest hours (between 6 AM and 10 PM) for "Best Times"
+        daytime_hours = {h: v for h, v in hourly_trend.items() if 6 <= h <= 22}
+        if daytime_hours:
+            quietest = sorted(daytime_hours.items(), key=lambda x: x[1])[:2]
+            best_times = []
+            for h, _ in quietest:
+                time_str = f"{h%12 or 12} {'AM' if h < 12 else 'PM'} - {(h+2)%12 or 12} {'AM' if h+2 < 12 else 'PM'}"
+                label = "Morning" if h < 12 else "Afternoon" if h < 17 else "Evening"
+                best_times.append((f"Quiet {label}", time_str))
+
+    # 2. Get Next Hour Forecast
+    current_hour = datetime.now().hour
+    next_hour = (current_hour + 1) % 24
+    
+    # Use historical trend for next hour, fallback to current occupancy if no data
+    forecast = hourly_trend.get(next_hour, min(100, occupancy_rate + 5))
     st.markdown(pred_html, unsafe_allow_html=True)
 
 time.sleep(5)
