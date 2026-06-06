@@ -438,7 +438,6 @@ with left_panel:
             
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['top']:
-                for item in layout['top']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
                 else:
@@ -462,7 +461,6 @@ with left_panel:
             
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['bottom']:
-                for item in layout['top']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
                 else:
