@@ -96,6 +96,7 @@ st.markdown("""
     .road-boundary { width: 95%; height: 14px; background-color: #0f4c75; margin: 12px 0; border-radius: 2px; }
     .slot { width: 35px; height: 35px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: white; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
     .slot.vacant { background-color: #10b981; } .slot.occupied { background-color: #ef4444; } .slot.oku-vacant { background-color: #38bdf8; } .slot.yellow { background-color: #fbbf24; box-shadow: none; } .slot.gap { background-color: transparent; box-shadow: none; width: 12px; }
+    .slot.maintenance { background-color: #f97316; }
     .car-icon { font-size: 16px; margin-bottom: 2px; line-height: 1; } .slot-id { font-size: 9px; line-height: 1; }
     </style>
     """, unsafe_allow_html=True)
@@ -204,7 +205,7 @@ if menu_selection == "🔍 Parking Monitoring":
     # --- GRID VIEW ---
     if view_mode == "Grid View":
         st.markdown("#### Live Parking Status")
-        st.markdown("<span style='color:#10b981'>■ Available</span> &nbsp; <span style='color:#ef4444'>■ Occupied</span> &nbsp; <span style='color:#38bdf8'>■ OKU</span>", unsafe_allow_html=True)
+        st.markdown("<span style='color:#10b981'>■ Available</span> &nbsp; <span style='color:#ef4444'>■ Occupied</span> &nbsp; <span style='color:#38bdf8'>■ OKU</span> &nbsp; <span style='color:#f97316'>■ Maintenance</span>", unsafe_allow_html=True)
         
         wings = sorted(df['wing_id'].unique()) if not df.empty else []
         selected_wing = st.selectbox("Select Level to Monitor", wings)
@@ -237,8 +238,17 @@ if menu_selection == "🔍 Parking Monitoring":
                 else:
                     status = status_map.get(item, "Vacant")
                     is_oku = f"{selected_wing}-{item}" in OKU_SLOTS
-                    status_class = "occupied" if status == "Occupied" else ("oku-vacant" if is_oku else "vacant")
-                    icon = "♿" if is_oku else "🚗"
+                    
+                    if status == "Maintenance":
+                        status_class = "maintenance"
+                        icon = "🚧"
+                    elif status == "Occupied":
+                        status_class = "occupied"
+                        icon = "🚗"
+                    else:
+                        status_class = "oku-vacant" if is_oku else "vacant"
+                        icon = "♿" if is_oku else "🚗"
+                        
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
             html += "</div></div>" 
 
@@ -251,8 +261,17 @@ if menu_selection == "🔍 Parking Monitoring":
                 else:
                     status = status_map.get(item, "Vacant")
                     is_oku = f"{selected_wing}-{item}" in OKU_SLOTS
-                    status_class = "occupied" if status == "Occupied" else ("oku-vacant" if is_oku else "vacant")
-                    icon = "♿" if is_oku else "🚗"
+                    
+                    if status == "Maintenance":
+                        status_class = "maintenance"
+                        icon = "🚧"
+                    elif status == "Occupied":
+                        status_class = "occupied"
+                        icon = "🚗"
+                    else:
+                        status_class = "oku-vacant" if is_oku else "vacant"
+                        icon = "♿" if is_oku else "🚗"
+                        
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
             html += "</div></div></div></div>" 
             st.markdown(html, unsafe_allow_html=True)
@@ -386,7 +405,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
     st.subheader("🔧 Manual Slot Update")
 
     slot_id = st.text_input("Slot ID")
-    new_status = st.selectbox("Status", ["Vacant", "Occupied"])
+    new_status = st.selectbox("Status", ["Vacant", "Occupied", "Maintenance"])
 
     if st.button("Update Slot"):
         res = supabase.table(table_name).update({"status": new_status}).eq("slot_id", slot_id).execute()
