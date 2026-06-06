@@ -19,7 +19,7 @@ FACILITY_ID_MAP = {
 
 st.markdown("""
     <style>
-    /* ADDED: Main Header & Logo Styling */
+    /* Main Header & Logo Styling */
     .main-header {
         display: flex;
         align-items: center;
@@ -31,25 +31,25 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     
-    /* UPDATED: NEW LOGO STYLE - Using P emoji inside a blue box */
+    /* NEW LOGO STYLE - Using P emoji inside a blue box */
     .logo-box {
         width: 60px;
         height: 60px;
-        background-color: #3b82f6; /* Blue background to match design */
+        background-color: #3b82f6; 
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-right: 20px;
         color: white;
-        font-size: 40px; /* Large built-in icon */
+        font-size: 40px; 
         font-weight: bold;
         line-height: 1;
     }
 
     .metric-container { 
         background-color: #ffffff; 
-        border: 1px solid #cbd5e1; /* Adds the box border */
+        border: 1px solid #cbd5e1; 
         padding: 15px 20px; 
         border-radius: 12px; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
@@ -57,7 +57,7 @@ st.markdown("""
         justify-content: space-between; 
         align-items: center;
     }
-    <style>
+    
     .stApp { background-color: #f8fafc; }
     .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 5px solid #8b5cf6; }
     div[data-testid="metric-container"] { background-color: #ffffff; border: 1px solid #e2e8f0; padding: 15px 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -68,7 +68,7 @@ st.markdown("""
     .stButton>button { background-color: #8b5cf6; color: white; border: none; border-radius: 8px; padding: 10px 24px; font-weight: bold; width: 100%; transition: all 0.3s;}
     .stButton>button:hover { background-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
     
-    /* CCTV Stream View - HEIGHT REDUCED TO 350px */
+    /* CCTV Stream View */
     .cctv-container { background-color: #0f172a; border-radius: 12px; padding: 20px; height: 350px; display: flex; flex-direction: column; justify-content: space-between; position: relative; border: 1px solid #334155;}
     .cctv-live-badge { position: absolute; top: 15px; right: 20px; color: #ef4444; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 5px;}
     .cctv-live-dot { width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
@@ -76,7 +76,7 @@ st.markdown("""
     .cctv-center-text { text-align: center; color: #64748b; margin-top: 80px; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     
-    /* FORCE VIDEO TO BE COMPACT AND FIT IN */
+    /* FORCE VIDEO TO BE COMPACT */
     video {
         max-height: 350px !important;
         border-radius: 12px !important;
@@ -100,7 +100,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SUPABASE CONNECTION (FIXED CACHING!) ---
+# --- 2. SUPABASE CONNECTION ---
 @st.cache_resource
 def init_connection():
     SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -357,7 +357,7 @@ elif menu_selection == "⚙️ Settings & Configuration":
             
         except Exception as e:
             st.error(f"Database Error: {e}")
-            print(f"Full Error Details: {e}") # This will print the exact Postgres error in your terminal
+            print(f"Full Error Details: {e}")
 
         # --- INPUTS (DYNAMIC) ---
         f_name = st.text_input("Facility Name", value=info.get("facility_name", manage_place))
@@ -366,14 +366,20 @@ elif menu_selection == "⚙️ Settings & Configuration":
         f_hours = st.text_input("Operating Hours", value=info.get("operating_hours", "24/7"))
 
         if st.button("💾 Save Facility Info"):
-            supabase.table("facility_info").upsert({
-            "facility_name": manage_place,
-            "address": f_address,
-            "total_levels": f_levels,
-            "operating_hours": f_hours
-        }).execute()
+            try:
+                # FIXED: Added the id to the upsert payload
+                supabase.table("facility_info").upsert({
+                    "id": facility_id, 
+                    "facility_name": manage_place,
+                    "address": f_address,
+                    "total_levels": f_levels,
+                    "operating_hours": f_hours
+                }).execute()
 
-        st.success(f"{manage_place} updated ✅")
+                st.success(f"{manage_place} updated ✅")
+            except Exception as e:
+                # FIXED: Added try-except to catch Postgres errors and show them gracefully
+                st.error(f"Failed to save to database! Error details: {e}")
 
     # --- MANUAL SLOT UPDATE ---
     st.markdown("---")
@@ -435,6 +441,6 @@ elif menu_selection == "📊 Generate Reports":
                     
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- NEW: Auto-refresh ONLY when looking at the Grid! ---
+    # --- Auto-refresh ONLY when looking at the Grid! ---
     time.sleep(5)
     st.rerun()
