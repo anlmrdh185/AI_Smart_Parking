@@ -79,6 +79,7 @@ st.markdown("""
     .slot.vacant { background-color: #10b981; }   
     .slot.occupied { background-color: #ef4444; } 
     .slot.oku-vacant { background-color: #38bdf8; } 
+    .slot.maintenance { background-color: #f97316; }
     .slot.yellow { background-color: #fbbf24; box-shadow: none; } 
     .slot.gap { background-color: transparent; box-shadow: none; width: 12px; } 
     .car-icon { font-size: 18px; line-height: 1; margin-bottom: 2px; } 
@@ -410,6 +411,7 @@ with left_panel:
                 <div><span style='color:#10b981'>■</span> Available</div>
                 <div><span style='color:#ef4444'>■</span> Occupied</div>
                 <div><span style='color:#38bdf8'>■</span> OKU Park</div>
+                <div><span style='color:#f97316'>■</span> Maintenance</div>
                 <div><span style='color:#fbbf24'>■</span> Non-Parking</div>
             </div>
             """, unsafe_allow_html=True)
@@ -436,13 +438,23 @@ with left_panel:
             
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['top']:
+                for item in layout['top']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
                 else:
                     status = status_map.get(item, "Vacant")
                     is_oku = f"{selected_wing}-{item}" in OKU_SLOTS
-                    status_class = "occupied" if status == "Occupied" else ("oku-vacant" if is_oku else "vacant")
-                    icon = "♿" if is_oku else "🚗"
+                    
+                    if status == "Maintenance":
+                        status_class = "maintenance"
+                        icon = "🚧"
+                    elif status == "Occupied":
+                        status_class = "occupied"
+                        icon = "🚗"
+                    else:
+                        status_class = "oku-vacant" if is_oku else "vacant"
+                        icon = "♿" if is_oku else "🚗"
+                        
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
             html += "</div></div>" 
 
@@ -450,13 +462,23 @@ with left_panel:
             
             html += "<div style='display:flex; align-items:center; width:100%; justify-content: center;'><div class='parking-row'>"
             for item in layout['bottom']:
+                for item in layout['top']:
                 if item == 'YELLOW':
                     html += "<div class='slot yellow'></div>"
                 else:
                     status = status_map.get(item, "Vacant")
                     is_oku = f"{selected_wing}-{item}" in OKU_SLOTS
-                    status_class = "occupied" if status == "Occupied" else ("oku-vacant" if is_oku else "vacant")
-                    icon = "♿" if is_oku else "🚗"
+                    
+                    if status == "Maintenance":
+                        status_class = "maintenance"
+                        icon = "🚧"
+                    elif status == "Occupied":
+                        status_class = "occupied"
+                        icon = "🚗"
+                    else:
+                        status_class = "oku-vacant" if is_oku else "vacant"
+                        icon = "♿" if is_oku else "🚗"
+                        
                     html += f"<div class='slot {status_class}'><div class='car-icon'>{icon}</div><div class='slot-id'>{item}</div></div>"
             html += "</div></div></div>" 
             st.markdown(html, unsafe_allow_html=True)
