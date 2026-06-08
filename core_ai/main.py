@@ -492,7 +492,7 @@ with right_panel:
     
     # Default fallback values if history is empty
     hourly_trend = {}
-    best_times = [("Early Morning", "6 AM - 8 AM"), ("Late Evening", "9 PM - 11 PM")]
+    best_times = [("Early Morning", "10 AM - 9 AM"), ("Late Evening", "9 PM - 10 PM")]
     
     if not history_df.empty:
         # Extract the hour from the entry times
@@ -506,8 +506,8 @@ with right_panel:
         if max_traffic > 0:
             hourly_trend = (hourly_counts / max_traffic * 100).fillna(0).astype(int).to_dict()
             
-        # Dynamically find the 2 quietest hours (between 6 AM and 10 PM) for "Best Times"
-        daytime_hours = {h: v for h, v in hourly_trend.items() if 6 <= h <= 22}
+        # Dynamically find the 2 quietest hours for "Best Times"
+        daytime_hours = {h: v for h, v in hourly_trend.items() if 10 <= h <= 22}
         if daytime_hours:
             quietest = sorted(daytime_hours.items(), key=lambda x: x[1])[:2]
             best_times = []
