@@ -512,7 +512,7 @@ with right_panel:
             hourly_trend[h] = max(5, min(95, base_trend + random.randint(-20, 20)))
 
     # Dynamically find the 2 quietest hours for "Best Times"
-    daytime_hours = {h: v for h, v in hourly_trend.items() if 8 <= h <= 22}
+    daytime_hours = {h: v for h, v in hourly_trend.items() if 10 <= h <= 22}
     if daytime_hours:
         quietest = sorted(daytime_hours.items(), key=lambda x: x[1])[:2]
         best_times = []
