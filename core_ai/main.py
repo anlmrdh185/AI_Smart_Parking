@@ -545,8 +545,8 @@ with right_panel:
     # Dynamic Bar Chart for the Day
     pred_html += "<div style='font-size: 13px; color: #475569; margin: 15px 0 10px 0;'>Today's Forecast</div>"
     
-    # Generate chart bars for specific hours (8 AM to 10 PM)
-    display_hours = [8, 10, 12, 14, 16, 18, 20, 22]
+    # Generate chart bars for specific hours 
+    display_hours = [10, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
     for h in display_hours:
         val = hourly_trend.get(h, random.randint(10, 20)) # Get historical % or default low
         color_class = "fill-green" if val < 50 else "fill-yellow" if val < 80 else "fill-red"
